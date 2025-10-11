@@ -25,7 +25,7 @@ void render_abilitly_meter(SDL_Renderer* renderer, int value, SDL_Rect Rect)
 {
 	int drawvalue;
 
-
+	//Draw Border
 	SDL_SetRenderDrawColor(renderer, 0, 0, 0, 0);
 	SDL_RenderDrawLine(renderer, Rect.x, Rect.y + Rect.h + 5, Rect.x + Rect.w, Rect.y + Rect.h + 5);
 	SDL_RenderDrawLine(renderer, Rect.x, Rect.y + Rect.h + 6, Rect.x + Rect.w, Rect.y + Rect.h + 6);
@@ -35,10 +35,12 @@ void render_abilitly_meter(SDL_Renderer* renderer, int value, SDL_Rect Rect)
 	SDL_RenderDrawLine(renderer, Rect.x, Rect.y + Rect.h + 10, Rect.x + Rect.w, Rect.y + Rect.h + 10);
 	SDL_RenderDrawLine(renderer, Rect.x + Rect.w - 5, Rect.y + Rect.h + 7, Rect.x + Rect.w, Rect.y + Rect.h + 7);
 	SDL_RenderDrawLine(renderer, Rect.x + Rect.w - 5, Rect.y + Rect.h + 8, Rect.x + Rect.w, Rect.y + Rect.h + 8);
+
+
+
+	//Draw Actual Bar
 	drawvalue = round((value / 100) * (Rect.w - 10));
-
-
-	SDL_SetRenderDrawColor(renderer, 83, 195, 189, 0);
+	//SDL_SetRenderDrawColor(renderer, 83, 195, 189, 0); why in holy hell was this here? 
 	SDL_RenderDrawLine(renderer, Rect.x + 6, Rect.y + Rect.h + 7,  drawvalue+Rect.x, Rect.y + Rect.h + 7);
 	SDL_RenderDrawLine(renderer, Rect.x + 6, Rect.y + Rect.h + 8, drawvalue+Rect.x, Rect.y + Rect.h + 8);
 

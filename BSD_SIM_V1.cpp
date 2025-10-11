@@ -4,10 +4,10 @@ Filename:BSD_SIM_V1.cpp
 Version:1.0
 Github Link:None
 Changes Made [Date/Time/Summary of Changes Made]:
-11-10-2025/23:50/Reused Project, installed corrosponding (old SDL2) libarys to make it work. Buxfixes needed: Fix the Ability bar, fills up more than its supposed to. Also replace cout with console out.
-
-
-
+|->11-10-2025/23:50/Reused Project, installed corrosponding (old SDL2) libarys to make it work. 
+TODO:
+|->Buxfixes needed: Fix the Ability bar, fills up more than its supposed to. Also replace cout with console out.
+|->Move all the .bmp texture files to a seperate folder to clear up the main folder. (looks horrible in git)
 
 
 
