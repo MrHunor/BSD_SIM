@@ -5,10 +5,12 @@ Version:1.0
 Github Link:None
 Changes Made [Date/Time/Summary of Changes Made]:
 |->11-10-2025/23:50/Reused Project, installed corrosponding (old SDL2) libarys to make it work. 
+|->12-10-2025/00:28/Ability Bar pretty much works now, need some final cosmetic touches.
+|->12-10-2025/00:45/Added Chuuya Ability bar; 
 TODO:
-|->Buxfixes needed: Fix the Ability bar, fills up more than its supposed to. Also replace cout with console out.
+|->Buxfixes needed: Give Abilitybar final tweaks; also make it acutally useful aka add ability bar for chuuya and give him a ability for dazai to nullifiy
 |->Move all the .bmp texture files to a seperate folder to clear up the main folder. (looks horrible in git)
-
+|->Create config (that can be written to using the ingame console menu) for things like other exit animations etc.
 
 
 
@@ -23,7 +25,6 @@ TODO:
 #include <conio.h>
 
 
-//Ability meter probelem is from 180 to 200; Reason not found yet
 
 
 // Global Variables
@@ -44,6 +45,7 @@ int fighting_frame_chuuya = 1;
 int playerhealth = 100;
 int chuuyahealth = 50;
 int playerability = 0;
+int chuuyaability = 0;
 string placeholder;
 string command;
 using namespace std;
@@ -294,12 +296,15 @@ int main(int argc, char* argv[]) {
         if (currenttime - abilitlycountdown > 300&&playerability<115)
         {
             playerability = playerability + 5;
-			abilitlycountdown = currenttime;
+			chuuyaability = chuuyaability + 3;
+            abilitlycountdown = currenttime;
+
         }
 		
-        if(playerability<115)render_abilitly_meter(renderer, playerability, player_rect);
+        render_abilitly_meter(renderer, playerability, player_rect);
+		render_abilitly_meter(renderer, chuuyaability, chuuya_rect);
 
-
+     
 
 
         // Render Chuuya
@@ -387,6 +392,7 @@ int main(int argc, char* argv[]) {
 			cout << "[DEBUG]>>Chuuya_aggressiv:" << chuuya_aggressiv << endl;
 			cout << "[DEBUG]>>Distance between player and chuuya:" << Get_distance_between_rects(player_rect, chuuya_rect) << endl;
 			cout << "[DEBUG]>>Playerabilitymeter:" << playerability << endl;
+			cout << "[DEBUG]>>Chuuyaabilitymeter:" << chuuyaability << endl;
 			cout << "[DEBUG]>>This message will be displayed again in 500ms\n\n";
             
 			Debug_time = currenttime;

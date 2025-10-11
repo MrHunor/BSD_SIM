@@ -20,6 +20,43 @@ string get_current_time_string() {
 }
 
 
+// Writes the given content to a file in the executing directory.
+// If the file already exists, its contents will be overwritten.
+//return 0 on sucess, 1 on failure
+bool overwriteToFile(const std::string& filename, const std::string& content) {
+	std::ofstream outFile(filename, std::ios::trunc); // std::ios::trunc ensures overwrite
+	if (!outFile) {
+		return 1;
+	}
+	outFile << content;
+	outFile.close();
+	return 0;
+}
+
+
+string read_file_to_string(string file_path)
+{
+	string filestring;
+
+	ifstream filehandler(file_path);
+
+	if (!filehandler.is_open())
+	{
+		cout << "Error opening file" << endl;
+		return NULL;
+	}
+	filehandler >> filestring;
+	filehandler.close();
+	if (filehandler.is_open())
+	{
+		cout << "Error closing file" << endl;
+		return NULL;
+	}
+
+
+	return filestring;
+
+}
 
 void render_abilitly_meter(SDL_Renderer* renderer, int value, SDL_Rect Rect)
 {

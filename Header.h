@@ -13,3 +13,5 @@ extern string ReadLogFileToString();
 extern Uint32 GetTimeDifference(Uint32 current, Uint32 previous);
 extern void render_abilitly_meter(SDL_Renderer* renderer, int value, SDL_Rect Rect);
 extern void consoleout(string message);
+extern bool overwriteToFile(const std::string& filename, const std::string& content);
+extern string read_file_to_string(string file_path);
