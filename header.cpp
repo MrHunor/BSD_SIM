@@ -39,8 +39,8 @@ void render_abilitly_meter(SDL_Renderer* renderer, int value, SDL_Rect Rect)
 
 
 	//Draw Actual Bar
-	drawvalue = round((value / 100) * (Rect.w - 10));
-	//SDL_SetRenderDrawColor(renderer, 83, 195, 189, 0); why in holy hell was this here? 
+	drawvalue = round((value / 100.0f) * (Rect.w - 10));
+	SDL_SetRenderDrawColor(renderer, 83, 195, 189, 0); 
 	SDL_RenderDrawLine(renderer, Rect.x + 6, Rect.y + Rect.h + 7,  drawvalue+Rect.x, Rect.y + Rect.h + 7);
 	SDL_RenderDrawLine(renderer, Rect.x + 6, Rect.y + Rect.h + 8, drawvalue+Rect.x, Rect.y + Rect.h + 8);
 

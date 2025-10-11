@@ -291,14 +291,17 @@ int main(int argc, char* argv[]) {
             }
         }
 
-        if (currenttime - abilitlycountdown > 1000)
+        if (currenttime - abilitlycountdown > 300&&playerability<115)
         {
-            playerability = playerability + 20;
+            playerability = playerability + 5;
 			abilitlycountdown = currenttime;
         }
 		
-        render_abilitly_meter(renderer, playerability, player_rect);
-      
+        if(playerability<115)render_abilitly_meter(renderer, playerability, player_rect);
+
+
+
+
         // Render Chuuya
         if (Is_within_range(player_rect, chuuya_rect, 300)) {
             chuuya_aggressiv = true;
@@ -438,7 +441,7 @@ int main(int argc, char* argv[]) {
     SDL_Quit();
     currenttime = SDL_GetTicks();
 
-    cout << "[SYSTEM]>>Cleanup finished after:" <<GetTimeDifference(SDL_GetTicks(),cleanuptime)<< "ms " << "at:" << get_current_time_string() << endl; //XXX Someone should fix this sometime
+    cout << "[SYSTEM]>>Cleanup finished at:" << get_current_time_string() << endl; 
 	cout << "[SYSTEM]>>Shutting down. Bye Bye!\n";
     Log("Program ended properly");
     return 0;
