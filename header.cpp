@@ -34,6 +34,18 @@ bool overwriteToFile(const std::string& filename, const std::string& content) {
 }
 
 
+
+void RenderBoolSpatter(SDL_Renderer* renderer, int x, int y)
+{
+	SDL_SetRenderDrawColor(renderer, 136, 8, 8,0); //blood color
+
+
+
+
+
+}
+
+
 string read_file_to_string(string file_path)
 {
 	string filestring;

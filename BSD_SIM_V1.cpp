@@ -7,11 +7,12 @@ Changes Made [Date/Time/Summary of Changes Made]:
 |->11-10-2025/23:50/Reused Project, installed corrosponding (old SDL2) libarys to make it work. 
 |->12-10-2025/00:28/Ability Bar pretty much works now, need some final cosmetic touches.
 |->12-10-2025/00:45/Added Chuuya Ability bar; 
+|->14-10-2025/18:39/ Added Chuuya ability (needs tweaks)
 TODO:
 |->Buxfixes needed: Give Abilitybar final tweaks; also make it acutally useful aka add ability bar for chuuya and give him a ability for dazai to nullifiy
 |->Move all the .bmp texture files to a seperate folder to clear up the main folder. (looks horrible in git)
 |->Create config (that can be written to using the ingame console menu) for things like other exit animations etc.
-
+|->Make chuuyas ability better, buff chuuya!
 
 
 
@@ -134,6 +135,10 @@ int main(int argc, char* argv[]) {
     SDL_Texture* chuuya_fighting_left_2_texture = SDL_CreateTextureFromSurface(renderer, chuuya_fighting_left_2);
     SDL_Texture* chuuya_fighting_left_3_texture = SDL_CreateTextureFromSurface(renderer, chuuya_fighting_left_3);
 
+
+
+
+
     // Check if textures created successfully
     if (!backround_texture || !player_resting_1_texture || !player_resting_2_texture || !player_walking_1_texture ||
         !player_walking_2_texture || !chuuya_resting_texture || !chuuya_aggressiv_texture || !player_fighting_right_1_texture ||
@@ -149,6 +154,8 @@ int main(int argc, char* argv[]) {
     SDL_Rect player_rect = { 100, 100, player_resting_1_surface->w, player_resting_1_surface->h };
     SDL_Rect chuuya_rect = { 800, 800, chuuya_resting_surface->w, chuuya_resting_surface->h };
     SDL_Rect backround_rect = { 0, 0, backround_surface->w, backround_surface->h };
+    SDL_Point chuuyaRestingCenter = { chuuya_rect.w / 2, chuuya_rect.h / 2 };
+    SDL_Point playerRestingCenter = { player_rect.w / 2, player_rect.h / 2 };
 
     // Timing Variables
     Uint32 LastFrameSwitch_resting = SDL_GetTicks();
@@ -293,10 +300,10 @@ int main(int argc, char* argv[]) {
             }
         }
 
-        if (currenttime - abilitlycountdown > 300&&playerability<115)
+        if (currenttime - abilitlycountdown > 300)
         {
-            playerability = playerability + 5;
-			chuuyaability = chuuyaability + 3;
+            if(playerability<115)playerability = playerability + 5;
+			if(chuuyaability<115)chuuyaability = chuuyaability + 3;
             abilitlycountdown = currenttime;
 
         }
@@ -304,7 +311,7 @@ int main(int argc, char* argv[]) {
         render_abilitly_meter(renderer, playerability, player_rect);
 		render_abilitly_meter(renderer, chuuyaability, chuuya_rect);
 
-     
+       
 
 
         // Render Chuuya
@@ -350,7 +357,7 @@ int main(int argc, char* argv[]) {
                 chuuya_rect.x = 9999;
             }
 
-            if(playerhealth <0)
+            if(playerhealth <=0)
 			{
 				Log("[GAME]>>Player: 'Dazai' is defeated!");
 				play_exit_animation(renderer);
@@ -378,6 +385,31 @@ int main(int argc, char* argv[]) {
 
                 Chuuya_walking_time = currenttime;
             }
+
+    
+            if (chuuyaability>110&&Is_within_range(player_rect, chuuya_rect,50))
+            {
+                //play ability animation 
+                SDL_RenderCopy(renderer, backround_texture, 0, &backround_rect);
+                SDL_RenderCopy(renderer, chuuya_resting_texture, NULL, &chuuya_rect);
+                for (size_t i = 0; i < 720; i++)
+                {
+                    SDL_RenderCopy(renderer, backround_texture, 0, &backround_rect);
+                    SDL_RenderCopy(renderer, chuuya_resting_texture, NULL, &chuuya_rect);
+                    SDL_RenderCopyEx(renderer, player_resting_1_texture, 0, &player_rect, i, &playerRestingCenter, SDL_FLIP_NONE);
+                    SDL_RenderPresent(renderer);
+                    Sleep(1);
+                }
+
+				playerhealth -= 20;
+				chuuyaability = 0;
+
+
+            }
+
+
+
+
         }
 
 
