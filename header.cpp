@@ -7,7 +7,72 @@
 #include <sstream>
 #include <iomanip>
 #include <iostream>
+#include <SDL2_gfxPrimitives.h>
+#include <random>
 using namespace std;
+
+
+void DrawFilledCircle(SDL_Renderer* renderer, int cx, int cy, int r) {
+	int dx, dy;
+	for (dy = -r; dy <= r; dy++) {
+		dx = (int)sqrt(r * r - dy * dy);
+		SDL_RenderDrawLine(renderer, cx - dx, cy + dy, cx + dx, cy + dy);
+	}
+}
+
+
+
+
+int random(int lower_bound, int upper_bound)
+{
+	static std::random_device rd;  // seed generator
+	static std::mt19937 gen(rd()); // Mersenne Twister engine
+
+	std::uniform_int_distribution<> dis(lower_bound, upper_bound);
+	return dis(gen);
+}
+
+void Intro(SDL_Renderer* renderer)
+{
+
+	for (size_t i = 0; i < 5; i++)
+	{
+		SDL_SetRenderDrawColor(renderer, random(0, 255), random(0, 255), random(0, 255), 0);
+		for (size_t i = 0; i < 1000; i++)
+		{
+			SDL_RenderDrawLine(renderer, 0, i, 1000, i);
+		}
+		SDL_RenderPresent(renderer);
+		SDL_SetRenderDrawColor(renderer, random(0, 255), random(0, 255), random(0, 255), 0);
+		for (size_t i = 0; i < 710; i=i+2)
+		{
+
+			DrawFilledCircle(renderer, 500, 500, i);
+			SDL_Delay(1);
+			SDL_RenderPresent(renderer);
+		}
+	}
+
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -35,16 +100,6 @@ bool overwriteToFile(const std::string& filename, const std::string& content) {
 
 
 
-void RenderBoolSpatter(SDL_Renderer* renderer, int x, int y)
-{
-	SDL_SetRenderDrawColor(renderer, 136, 8, 8,0); //blood color
-
-
-
-
-
-}
-
 
 string read_file_to_string(string file_path)
 {
@@ -69,6 +124,35 @@ string read_file_to_string(string file_path)
 	return filestring;
 
 }
+
+
+void render_abilitly_meter(SDL_Renderer* renderer, int value, SDL_Rect Rect)
+{
+	int drawvalue;
+
+	//Draw Border
+	SDL_SetRenderDrawColor(renderer, 0, 0, 0, 0);
+	SDL_RenderDrawLine(renderer, Rect.x, Rect.y + Rect.h + 5, Rect.x + Rect.w, Rect.y + Rect.h + 5);
+	SDL_RenderDrawLine(renderer, Rect.x, Rect.y + Rect.h + 6, Rect.x + Rect.w, Rect.y + Rect.h + 6);
+	SDL_RenderDrawLine(renderer, Rect.x, Rect.y + Rect.h + 7, Rect.x + 5, Rect.y + Rect.h + 7);
+	SDL_RenderDrawLine(renderer, Rect.x, Rect.y + Rect.h + 8, Rect.x + 5, Rect.y + Rect.h + 8);
+	SDL_RenderDrawLine(renderer, Rect.x, Rect.y + Rect.h + 9, Rect.x + Rect.w, Rect.y + Rect.h + 9);
+	SDL_RenderDrawLine(renderer, Rect.x, Rect.y + Rect.h + 10, Rect.x + Rect.w, Rect.y + Rect.h + 10);
+	SDL_RenderDrawLine(renderer, Rect.x + Rect.w - 5, Rect.y + Rect.h + 7, Rect.x + Rect.w, Rect.y + Rect.h + 7);
+	SDL_RenderDrawLine(renderer, Rect.x + Rect.w - 5, Rect.y + Rect.h + 8, Rect.x + Rect.w, Rect.y + Rect.h + 8);
+
+
+
+	//Draw Actual Bar
+	drawvalue = round((value / 100.0f) * (Rect.w - 10));
+	SDL_SetRenderDrawColor(renderer, 83, 195, 189, 0);
+	SDL_RenderDrawLine(renderer, Rect.x + 6, Rect.y + Rect.h + 7, drawvalue + Rect.x, Rect.y + Rect.h + 7);
+	SDL_RenderDrawLine(renderer, Rect.x + 6, Rect.y + Rect.h + 8, drawvalue + Rect.x, Rect.y + Rect.h + 8);
+
+}
+
+
+
 
 void render_abilitly_meter(SDL_Renderer* renderer, int value, SDL_Rect Rect)
 {

@@ -8,12 +8,13 @@ Changes Made [Date/Time/Summary of Changes Made]:
 |->12-10-2025/00:28/Ability Bar pretty much works now, need some final cosmetic touches.
 |->12-10-2025/00:45/Added Chuuya Ability bar; 
 |->14-10-2025/18:39/ Added Chuuya ability (needs tweaks)
+|->15-10-2025/19:20/ Added Intro to game
 TODO:
 |->Buxfixes needed: Give Abilitybar final tweaks; also make it acutally useful aka add ability bar for chuuya and give him a ability for dazai to nullifiy
 |->Move all the .bmp texture files to a seperate folder to clear up the main folder. (looks horrible in git)
 |->Create config (that can be written to using the ingame console menu) for things like other exit animations etc.
 |->Make chuuyas ability better, buff chuuya!
-
+|->HEALTH BAR IMPORTANT
 
 
 
@@ -25,7 +26,7 @@ TODO:
 #include "Header.h"
 #include <conio.h>
 
-
+using namespace std;
 
 
 // Global Variables
@@ -49,11 +50,10 @@ int playerability = 0;
 int chuuyaability = 0;
 string placeholder;
 string command;
-using namespace std;
+Uint32 currenttime;
 
 int main(int argc, char* argv[]) {
-    // Initialization
-    Uint32 currenttime;
+    //Startup
     HWND consoleWindow = GetConsoleWindow();
     CreateLog();
     cout << "BSD_SIM_V1.0\n";
@@ -73,6 +73,11 @@ int main(int argc, char* argv[]) {
     cout << "[SYSTEM]>>Startup started at:" << get_current_time_string() << endl;
 
     Uint32 general_time = SDL_GetTicks();
+    
+    
+    
+    
+    //Init SDL & other stuff
     if (SDL_Init(SDL_INIT_EVERYTHING) != 0) {
         cerr << "SDL_Init Error: " << SDL_GetError() << endl;
         return 1;
@@ -168,23 +173,86 @@ int main(int argc, char* argv[]) {
 	Uint32 Debug_time = SDL_GetTicks();
     Uint32 cleanuptime = SDL_GetTicks();
     Uint32 abilitlycountdown = SDL_GetTicks();
+
     // Event Handling
     SDL_Event event;
     currenttime = SDL_GetTicks();
     cout << "[SYSTEM]>>Startup finished after:" << currenttime - general_time << "ms " << "at:" << get_current_time_string() << endl;
+    if (!Debug)Intro(renderer);
     cout << "[SYSTEM]>>Program loop started\n";
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
     // Main Game Loop
     while (!quit) {
         walking = false;
         currenttime = SDL_GetTicks();
-        // Handle Events
-        while (SDL_PollEvent(&event)) {
-            if (event.type == SDL_QUIT) {
+           // Handle Events
+           while (SDL_PollEvent(&event)) {
+              if (event.type == SDL_QUIT) {
                 play_exit_animation(renderer);
                 quit = true;
-            }
-            else if (event.type == SDL_KEYDOWN) {
+              }
+              else if (event.type == SDL_KEYDOWN) {
                 switch (event.key.keysym.sym) {
                 case SDLK_w: walking = true; player_rect.y -= 10; Log("player coordinates changed to:" + to_string(player_rect.x) + "," + to_string(player_rect.y)); break;
                 case SDLK_s: walking = true; player_rect.y += 10; Log("player coordinates changed to:" + to_string(player_rect.x) + "," + to_string(player_rect.y)); break;
@@ -194,8 +262,8 @@ int main(int argc, char* argv[]) {
                 case SDLK_ESCAPE: play_exit_animation(renderer); quit = true; break;
                 case SDLK_c: console = true; break;
                 }
-            }
-        }
+              }
+           }
 
         // Console Handling
         if (console) {
