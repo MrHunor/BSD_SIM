@@ -9,14 +9,16 @@ Changes Made [Date/Time/Summary of Changes Made]:
 |->12-10-2025/00:45/Added Chuuya Ability bar; 
 |->14-10-2025/18:39/ Added Chuuya ability (needs tweaks)
 |->15-10-2025/19:20/ Added Intro to game
+|->16-10-2025/19:10/Created switch logic and created shooting animation surfaces and textures and created gamestatus console command
 TODO:
 |->Buxfixes needed: Give Abilitybar final tweaks; also make it acutally useful aka add ability bar for chuuya and give him a ability for dazai to nullifiy
 |->Move all the .bmp texture files to a seperate folder to clear up the main folder. (looks horrible in git)
 |->Create config (that can be written to using the ingame console menu) for things like other exit animations etc.
 |->Make chuuyas ability better, buff chuuya!
 |->HEALTH BAR IMPORTANT
-
-
+|->Move logs to dedicated log folder
+|->Create a GAME!->dazai walking aroung, shooting first person at enemys etc..
+|->Add exit crash animaton
 
 ******************************************************************************************/
 
@@ -48,6 +50,7 @@ int playerhealth = 100;
 int chuuyahealth = 50;
 int playerability = 0;
 int chuuyaability = 0;
+int gamestatus=0;
 string placeholder;
 string command;
 Uint32 currenttime;
@@ -108,14 +111,17 @@ int main(int argc, char* argv[]) {
     SDL_Surface* chuuya_fighting_left_1 = SDL_LoadBMP("chuuya_fighting_left_1.bmp");
     SDL_Surface* chuuya_fighting_left_2 = SDL_LoadBMP("chuuya_fighting_left_2.bmp");
     SDL_Surface* chuuya_fighting_left_3 = SDL_LoadBMP("chuuya_fighting_left_3.bmp");
+	SDL_Surface* shooting1P_1_surface = SDL_LoadBMP("Shooting1P_1.bmp");
+	SDL_Surface* shooting1P_2_surface = SDL_LoadBMP("Shooting1P_2.bmp");
+
 
     // Check if surfaces loaded successfully
     if (!backround_surface || !player_resting_1_surface || !player_resting_2_surface || !player_walking_1_surface ||
         !player_walking_2_surface || !chuuya_resting_surface || !chuuya_aggressiv_surface || !player_fighting_right_1 ||
         !player_fighting_right_2 || !player_fighting_right_3 || !player_fighting_left_1 || !player_fighting_left_2 ||
         !player_fighting_left_3 || !chuuya_fighting_right_1 || !chuuya_fighting_right_2 || !chuuya_fighting_right_3 ||
-        !chuuya_fighting_left_1 || !chuuya_fighting_left_2 || !chuuya_fighting_left_3) {
-        cout << "SDL_LoadBMP Error: " << SDL_GetError() << endl;
+        !chuuya_fighting_left_1 || !chuuya_fighting_left_2 || !chuuya_fighting_left_3||!shooting1P_1_surface||!shooting1P_2_surface) {
+		consoleout("[SYSTEM]>>Surface Load Error: " + string(SDL_GetError()));
         return 1;
     }
 
@@ -139,7 +145,8 @@ int main(int argc, char* argv[]) {
     SDL_Texture* chuuya_fighting_left_1_texture = SDL_CreateTextureFromSurface(renderer, chuuya_fighting_left_1);
     SDL_Texture* chuuya_fighting_left_2_texture = SDL_CreateTextureFromSurface(renderer, chuuya_fighting_left_2);
     SDL_Texture* chuuya_fighting_left_3_texture = SDL_CreateTextureFromSurface(renderer, chuuya_fighting_left_3);
-
+	SDL_Texture* shooting1P_1_texture = SDL_CreateTextureFromSurface(renderer, shooting1P_1_surface);
+	SDL_Texture* shooting1P_2_texture = SDL_CreateTextureFromSurface(renderer, shooting1P_2_surface);
 
 
 
@@ -150,8 +157,8 @@ int main(int argc, char* argv[]) {
         !player_fighting_right_2_texture || !player_fighting_right_3_texture || !player_fighting_left_1_texture ||
         !player_fighting_left_2_texture || !player_fighting_left_3_texture || !chuuya_fighting_right_1_texture ||
         !chuuya_fighting_right_2_texture || !chuuya_fighting_right_3_texture || !chuuya_fighting_left_1_texture ||
-        !chuuya_fighting_left_2_texture || !chuuya_fighting_left_3_texture) {
-        cout << "SDL_CreateTextureFromSurface Error: " << SDL_GetError() << endl;
+        !chuuya_fighting_left_2_texture || !chuuya_fighting_left_3_texture|| !shooting1P_1_texture||!shooting1P_2_texture) {
+		consoleout("[SYSTEM]>>Texture Creation Error: " + string(SDL_GetError()));
         return 1;
     }
 
@@ -180,7 +187,7 @@ int main(int argc, char* argv[]) {
     cout << "[SYSTEM]>>Startup finished after:" << currenttime - general_time << "ms " << "at:" << get_current_time_string() << endl;
     if (!Debug)Intro(renderer);
     cout << "[SYSTEM]>>Program loop started\n";
-    
+    gamestatus = 1;//for testing purposes
 
 
 
@@ -243,13 +250,16 @@ int main(int argc, char* argv[]) {
 
 
     // Main Game Loop
-    while (!quit) {
+     while (!quit) {
+        switch(gamestatus)
+        { 
+        case 1:
+
         walking = false;
         currenttime = SDL_GetTicks();
            // Handle Events
            while (SDL_PollEvent(&event)) {
               if (event.type == SDL_QUIT) {
-                play_exit_animation(renderer);
                 quit = true;
               }
               else if (event.type == SDL_KEYDOWN) {
@@ -274,15 +284,16 @@ int main(int argc, char* argv[]) {
                 
                 cin >> command;
                 if (command == "exit") {
-                    cout << "[CONSOLE]Quitted Console\n";
+                    cout << "[CONSOLE]>>Quitted Console\n";
                     quit2 = true;
                 }
                 else if (command == "help") {
-                    cout << "[CONSOLE]Commands:\n";
-                    cout << "[CONSOLE]exit: exits the console\n";
-                    cout << "[CONSOLE]help: shows this message\n";
-                    cout << "[CONSOLE]showlog: shows the log\n";
-                    cout << "[CONSOLE]log: put message into log\n";
+                    cout << "[CONSOLE]>>Commands:\n";
+                    cout << "[CONSOLE]>>exit: exits the console\n";
+                    cout << "[CONSOLE]>>help: shows this message\n";
+                    cout << "[CONSOLE]>>showlog: shows the log\n";
+                    cout << "[CONSOLE]>>log: put message into log\n";
+                    cout << "[CONSOLE]>>gamestatus: set gamestatus\n";
                     cout << "[CONSOLE]>>";
 
                 }
@@ -296,13 +307,20 @@ int main(int argc, char* argv[]) {
                 }
                 else if (command == "showlog")
                 {
-					cout << "[CONSOLE]>>" << ReadLogFileToString() << endl;
+					cout << "[CONSOLE]>>\n" << ReadLogFileToString() << endl;
 					cout << "[CONSOLE]>>";
 
 
                 }
+                else if (command == "gamestatus")
+                {
+                    cout << "[CONSOLE]>>Current Game Status=" + to_string(gamestatus) + "\nEnter new gamestatus value(int) :";
+                    cin >> gamestatus;
+					consoleout("[CONSOLE]>>Gamestatus set to:" + to_string(gamestatus) + "\n");
+                    consoleout("[CONSOLE]>>");
+                }
                 else {
-                    cout << "[CONSOLE]Command not found\n";
+                    cout << "[CONSOLE]>>Command not found\n";
                     cout << "[CONSOLE]>>";
                 }
             }
@@ -504,7 +522,14 @@ int main(int argc, char* argv[]) {
 
         // Present Renderer
         SDL_RenderPresent(renderer);
+
+        break;
+        default:
+			consoleout("[GAME]>>Error: Unknown gamestatus value:" + to_string(gamestatus) + "\nShutting down...");
+            quit = true;
+     }
     }
+    play_exit_animation(renderer);
 	cout << "[SYSTEM]>>Exited Game Loop. Starting cleanup at:"<<get_current_time_string()<<endl;
     cleanuptime = SDL_GetTicks();
     // Clean Up Resources
