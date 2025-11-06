@@ -10,6 +10,7 @@ Changes Made [Date/Time/Summary of Changes Made]:
 |->14-10-2025/18:39/ Added Chuuya ability (needs tweaks)
 |->15-10-2025/19:20/ Added Intro to game
 |->16-10-2025/19:10/Created switch logic and created shooting animation surfaces and textures and created gamestatus console command
+|->16-10-2025/20:30/ Created basic shooting first person game mode (gamestatus 2)
 TODO:
 |->Buxfixes needed: Give Abilitybar final tweaks; also make it acutally useful aka add ability bar for chuuya and give him a ability for dazai to nullifiy
 |->Move all the .bmp texture files to a seperate folder to clear up the main folder. (looks horrible in git)
@@ -19,11 +20,15 @@ TODO:
 |->Move logs to dedicated log folder
 |->Create a GAME!->dazai walking aroung, shooting first person at enemys etc..
 |->Add exit crash animaton
-
+|->convert all bmp to png to save space and have transparency (load via IMG_loadtexture)
+|->invent tick speed and fps 
+|->resize to 1024x1024 (PoT)
+|->ADD PROPER LOGGING AND DEBUG OUPUT FOR GODS SAKE
 ******************************************************************************************/
 
 #include <iostream>
 #include <SDL.h>
+#include <SDL_image.h>
 #include <Windows.h>
 #include "Header.h"
 #include <conio.h>
@@ -43,14 +48,15 @@ bool hit_took = false;
 bool quit2 = false;
 bool console = false;
 bool Debug = false;
-
 int fighting_frame_player = 1;
 int fighting_frame_chuuya = 1;
 int playerhealth = 100;
 int chuuyahealth = 50;
 int playerability = 0;
 int chuuyaability = 0;
-int gamestatus=0;
+int gamestatus = 0;
+int textureW = 0;
+int textureH = 0;
 string placeholder;
 string command;
 Uint32 currenttime;
@@ -111,8 +117,7 @@ int main(int argc, char* argv[]) {
     SDL_Surface* chuuya_fighting_left_1 = SDL_LoadBMP("chuuya_fighting_left_1.bmp");
     SDL_Surface* chuuya_fighting_left_2 = SDL_LoadBMP("chuuya_fighting_left_2.bmp");
     SDL_Surface* chuuya_fighting_left_3 = SDL_LoadBMP("chuuya_fighting_left_3.bmp");
-	SDL_Surface* shooting1P_1_surface = SDL_LoadBMP("Shooting1P_1.bmp");
-	SDL_Surface* shooting1P_2_surface = SDL_LoadBMP("Shooting1P_2.bmp");
+
 
 
     // Check if surfaces loaded successfully
@@ -120,7 +125,7 @@ int main(int argc, char* argv[]) {
         !player_walking_2_surface || !chuuya_resting_surface || !chuuya_aggressiv_surface || !player_fighting_right_1 ||
         !player_fighting_right_2 || !player_fighting_right_3 || !player_fighting_left_1 || !player_fighting_left_2 ||
         !player_fighting_left_3 || !chuuya_fighting_right_1 || !chuuya_fighting_right_2 || !chuuya_fighting_right_3 ||
-        !chuuya_fighting_left_1 || !chuuya_fighting_left_2 || !chuuya_fighting_left_3||!shooting1P_1_surface||!shooting1P_2_surface) {
+        !chuuya_fighting_left_1 || !chuuya_fighting_left_2 || !chuuya_fighting_left_3) {
 		consoleout("[SYSTEM]>>Surface Load Error: " + string(SDL_GetError()));
         return 1;
     }
@@ -145,8 +150,8 @@ int main(int argc, char* argv[]) {
     SDL_Texture* chuuya_fighting_left_1_texture = SDL_CreateTextureFromSurface(renderer, chuuya_fighting_left_1);
     SDL_Texture* chuuya_fighting_left_2_texture = SDL_CreateTextureFromSurface(renderer, chuuya_fighting_left_2);
     SDL_Texture* chuuya_fighting_left_3_texture = SDL_CreateTextureFromSurface(renderer, chuuya_fighting_left_3);
-	SDL_Texture* shooting1P_1_texture = SDL_CreateTextureFromSurface(renderer, shooting1P_1_surface);
-	SDL_Texture* shooting1P_2_texture = SDL_CreateTextureFromSurface(renderer, shooting1P_2_surface);
+    SDL_Texture* shooting1P_1_texture = IMG_LoadTexture(renderer, "Shooting1P_1.png");
+	SDL_Texture* shooting1P_2_texture = IMG_LoadTexture(renderer, "Shooting1P_2.png");
 
 
 
@@ -162,12 +167,18 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
-    // Define Rectangles for Player, Chuuya, and Background
+    // Define Rectangles for Player, Chuuya, and Background (surface bound->for now)
     SDL_Rect player_rect = { 100, 100, player_resting_1_surface->w, player_resting_1_surface->h };
     SDL_Rect chuuya_rect = { 800, 800, chuuya_resting_surface->w, chuuya_resting_surface->h };
     SDL_Rect backround_rect = { 0, 0, backround_surface->w, backround_surface->h };
     SDL_Point chuuyaRestingCenter = { chuuya_rect.w / 2, chuuya_rect.h / 2 };
     SDL_Point playerRestingCenter = { player_rect.w / 2, player_rect.h / 2 };
+    
+    //Defining rects for shooting "animation" (texture bound->better)
+    SDL_QueryTexture(shooting1P_1_texture, NULL, NULL, &textureW, &textureH);
+	SDL_Rect shooting1P_rect = { 620, 676, textureW, textureH };//no need for a rect for the 2 frame because the dimesions are the same for both frames
+
+
 
     // Timing Variables
     Uint32 LastFrameSwitch_resting = SDL_GetTicks();
@@ -180,14 +191,14 @@ int main(int argc, char* argv[]) {
 	Uint32 Debug_time = SDL_GetTicks();
     Uint32 cleanuptime = SDL_GetTicks();
     Uint32 abilitlycountdown = SDL_GetTicks();
-
+    Uint32 shootingcooldown = SDL_GetTicks();
     // Event Handling
     SDL_Event event;
     currenttime = SDL_GetTicks();
     cout << "[SYSTEM]>>Startup finished after:" << currenttime - general_time << "ms " << "at:" << get_current_time_string() << endl;
     if (!Debug)Intro(renderer);
     cout << "[SYSTEM]>>Program loop started\n";
-    gamestatus = 1;//for testing purposes
+    gamestatus = 2;//for testing purposes
 
 
 
@@ -250,6 +261,7 @@ int main(int argc, char* argv[]) {
 
 
     // Main Game Loop
+    quit = false;
      while (!quit) {
         switch(gamestatus)
         { 
@@ -524,6 +536,66 @@ int main(int argc, char* argv[]) {
         SDL_RenderPresent(renderer);
 
         break;
+
+
+
+
+
+
+
+
+
+
+
+        case 2://Shooting game first person - Practice 
+            quit = false;
+			SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
+        SDL_RenderClear(renderer);
+        while (!quit)
+        {
+            currenttime = SDL_GetTicks();
+            SDL_RenderCopy(renderer, shooting1P_1_texture, 0, &shooting1P_rect);
+
+            while (SDL_PollEvent(&event)) {
+                if (event.type == SDL_QUIT) {
+                    quit = true;
+                }
+               
+                else if (event.type == SDL_KEYDOWN) {
+                    switch (event.key.keysym.sym) {
+                 
+                    case SDLK_w: if (shooting1P_rect.y > 300) shooting1P_rect.y -= 100; SDL_RenderClear(renderer); break;
+                    case SDLK_s: if (shooting1P_rect.y < 676) shooting1P_rect.y += 100; SDL_RenderClear(renderer); break;
+                    case SDLK_a: if (shooting1P_rect.x > 300) shooting1P_rect.x -= 100; SDL_RenderClear(renderer); break;
+                    case SDLK_d: if (shooting1P_rect.x < 620) shooting1P_rect.x += 100; SDL_RenderClear(renderer); break;
+
+                    case SDLK_e://shoot
+                        if (currenttime - shootingcooldown > 200)
+                        {
+                            SDL_RenderClear(renderer);
+                            SDL_RenderCopy(renderer, shooting1P_2_texture, 0, &shooting1P_rect);
+                            SDL_RenderPresent(renderer);
+                            SDL_Delay(100);
+                            SDL_RenderClear(renderer);
+							shootingcooldown = currenttime;
+                        }
+                    break;
+
+                    case SDLK_ESCAPE:play_exit_animation(renderer);quit = true;
+                    break;
+
+                    case SDLK_c:console = true;
+                    break;
+                    }
+                }
+            }
+
+
+
+            SDL_RenderPresent(renderer);
+        }
+
+
         default:
 			consoleout("[GAME]>>Error: Unknown gamestatus value:" + to_string(gamestatus) + "\nShutting down...");
             quit = true;

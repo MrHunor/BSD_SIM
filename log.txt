@@ -1,9 +1,3 @@
-146
-Current Time:2025-11-02|19-14-59
+177
+Last log saved to: log/log_177.txt
 Debug activated
-Consoleout:[CONSOLE]>>Gamestatus set to:3
-
-Consoleout:[CONSOLE]>>
-Consoleout:[SYSTEM]>>Error: Unknown gamestatus value:3
-Shutting down...
-Program ended properly

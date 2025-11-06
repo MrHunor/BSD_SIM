@@ -1,4 +1,5 @@
 #pragma warning(disable : 4996)
+
 #include <string>
 #include <fstream>
 #include <SDL.h>
@@ -9,8 +10,9 @@
 #include <iostream>
 #include <SDL2_gfxPrimitives.h>
 #include <random>
+#include <filesystem>
 using namespace std;
-
+namespace fs = std::filesystem;
 
 void DrawFilledCircle(SDL_Renderer* renderer, int cx, int cy, int r) {
 	int dx, dy;
@@ -183,21 +185,52 @@ std::string getLineFromFile(const std::string& filePath, int lineNumber) {
 }
 
 
-void CreateLog()
+void CreateLog()//god thank chatgpt
 {
-	ofstream logFile("log_new.txt");
-	logFile << stoi(getLineFromFile("log.txt", 1))+ 1 << endl;
-	logFile << "Current Time:" << get_current_time_string() << endl;
-	logFile.close();
-	remove("log.txt");
-	if (rename("log_new.txt", "log.txt") != 0)
-	{
-		cout << "Error renaming file" << endl;
+	// Make sure the log directory exists
+     filesystem::create_directory("log");
+
+	// Read the last log number
+	int logNumber = 0;
+	try {
+		logNumber = stoi(getLineFromFile("log.txt", 1));
 	}
-	
+	catch (...) {
+		logNumber = 0;
+	}
 
+	// Increment it for the new log
+	int newLogNumber = logNumber + 1;
 
+	// File paths
+	string tempFile = "log_new.txt";
+	string mainLog = "log.txt";
+	string archivedLog = "log/log_" + to_string(newLogNumber) + ".txt";
 
+	// Write the new log info to the archived file
+	ofstream archived(archivedLog);
+	if (archived.is_open()) {
+		archived << "Log #" << newLogNumber << endl;
+		archived << "Current Time: " << get_current_time_string() << endl;
+		archived.close();
+	}
+	else {
+		cerr << "Error: could not write to " << archivedLog << endl;
+	}
+
+	// Update log.txt with the latest number
+	ofstream logFile(tempFile);
+	logFile << newLogNumber << endl;
+	logFile << "Last log saved to: " << archivedLog << endl;
+	logFile.close();
+
+	remove(mainLog.c_str());
+	if (rename(tempFile.c_str(), mainLog.c_str()) != 0)
+	{
+		cerr << "Error renaming " << tempFile << " to " << mainLog << endl;
+	}
+
+	cout << "Created log file: " << archivedLog << endl;
 }
 
 string ReadLogFileToString() {
