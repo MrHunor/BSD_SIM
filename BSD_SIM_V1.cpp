@@ -198,7 +198,7 @@ int main(int argc, char* argv[]) {
     cout << "[SYSTEM]>>Startup finished after:" << currenttime - general_time << "ms " << "at:" << get_current_time_string() << endl;
     if (!Debug)Intro(renderer);
     cout << "[SYSTEM]>>Program loop started\n";
-    gamestatus = 2;//for testing purposes
+    gamestatus = 1;//for testing purposes
 
 
 

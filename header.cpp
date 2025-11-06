@@ -193,7 +193,7 @@ void CreateLog()//god thank chatgpt
 	// Read the last log number
 	int logNumber = 0;
 	try {
-		logNumber = stoi(getLineFromFile("log.txt", 1));
+		logNumber = stoi(getLineFromFile("latest.log", 1));
 	}
 	catch (...) {
 		logNumber = 0;
@@ -203,9 +203,9 @@ void CreateLog()//god thank chatgpt
 	int newLogNumber = logNumber + 1;
 
 	// File paths
-	string tempFile = "log_new.txt";
-	string mainLog = "log.txt";
-	string archivedLog = "log/log_" + to_string(newLogNumber) + ".txt";
+	string tempFile = "log_new.log";
+	string mainLog = "latest.log";
+	string archivedLog = "log/log_" + to_string(newLogNumber) + ".log";
 
 	// Write the new log info to the archived file
 	ofstream archived(archivedLog);
@@ -234,7 +234,7 @@ void CreateLog()//god thank chatgpt
 }
 
 string ReadLogFileToString() {
-	std::ifstream logFile("log.txt"); // Open the log file
+	std::ifstream logFile("latest.log"); // Open the log file
 	if (!logFile.is_open()) {
 		std::cerr << "Could not open the logfile: "<< std::endl;
 		return ""; // Return an empty string if the file cannot be opened
@@ -259,7 +259,7 @@ Uint32 GetTimeDifference(Uint32 current, Uint32 previous) {
 
 void Log(const string& message) {
 	
-	ofstream logFile("log.txt", ios_base::app);
+	ofstream logFile("latest.log", ios_base::app);
 	logFile << message << endl;
 	logFile.close();
 }
