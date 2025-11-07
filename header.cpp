@@ -1,5 +1,4 @@
 #pragma warning(disable : 4996)
-
 #include <string>
 #include <fstream>
 #include <SDL.h>
@@ -11,8 +10,22 @@
 #include <SDL2_gfxPrimitives.h>
 #include <random>
 #include <filesystem>
+#include <windows.h>
+#include <Psapi.h>
 using namespace std;
 namespace fs = std::filesystem;
+
+
+float GetMemoryUsage() {
+	PROCESS_MEMORY_COUNTERS_EX pmc;
+	if(GetProcessMemoryInfo(GetCurrentProcess(), (PROCESS_MEMORY_COUNTERS*)&pmc, sizeof(pmc))) {
+		return static_cast<float>(pmc.WorkingSetSize) / (1024.0f * 1024.0f); // MB
+		
+	}
+	return 0.0f;
+}
+
+
 
 void DrawFilledCircle(SDL_Renderer* renderer, int cx, int cy, int r) {
 	int dx, dy;
@@ -21,9 +34,6 @@ void DrawFilledCircle(SDL_Renderer* renderer, int cx, int cy, int r) {
 		SDL_RenderDrawLine(renderer, cx - dx, cy + dy, cx + dx, cy + dy);
 	}
 }
-
-
-
 
 int random(int lower_bound, int upper_bound)
 {
@@ -183,7 +193,17 @@ std::string getLineFromFile(const std::string& filePath, int lineNumber) {
 	cout << "Line number exceeds the total lines in the file.(Error in getLineFromFile)" << endl;
 	exit(1);
 }
+void Log(const string& message) {
 
+	ofstream logFile("latest.log", ios_base::app);
+	logFile << message << endl;
+	logFile.close();
+}
+
+void consoleout(string message) {
+	cout << message;
+	Log("Consoleout:" + message);
+}
 
 void CreateLog()//god thank chatgpt
 {
@@ -230,7 +250,10 @@ void CreateLog()//god thank chatgpt
 		cerr << "Error renaming " << tempFile << " to " << mainLog << endl;
 	}
 
-	cout << "Created log file: " << archivedLog << endl;
+
+
+	consoleout("[SYSTEM]>>Log:" + archivedLog + " archived.\n");
+	consoleout("[SYSTEM]>>New Log:" + mainLog + ".\n");
 }
 
 string ReadLogFileToString() {
@@ -257,16 +280,8 @@ Uint32 GetTimeDifference(Uint32 current, Uint32 previous) {
 	}
 }
 
-void Log(const string& message) {
-	
-	ofstream logFile("latest.log", ios_base::app);
-	logFile << message << endl;
-	logFile.close();
-}
-void consoleout(string message) {
-	cout << message;
-	Log("Consoleout:" + message);
-}
+
+
 bool Is_within_range(const SDL_Rect& rect1, const SDL_Rect& rect2, int range) {
     int dx = rect1.x - rect2.x;
     int dy = rect1.y - rect2.y;

@@ -16,3 +16,4 @@ extern void consoleout(string message);
 extern bool overwriteToFile(const std::string& filename, const std::string& content);
 extern string read_file_to_string(string file_path);
 extern void Intro(SDL_Renderer* renderer);
+extern float GetMemoryUsage();
