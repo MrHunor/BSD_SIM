@@ -105,59 +105,27 @@ int main(int argc, char* argv[]) {
     SDL_Window* window = SDL_CreateWindow("SDL2 Displaying Image", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 1000, 1000, 0);
     SDL_Renderer* renderer = SDL_CreateRenderer(window, -1, 0);
 
-    // Load Surfaces
-    SDL_Surface* backround_surface = SDL_LoadBMP("backround.bmp");
-    SDL_Surface* player_resting_1_surface = SDL_LoadBMP("dazai_resting_1.bmp");
-    SDL_Surface* player_resting_2_surface = SDL_LoadBMP("dazai_resting_2.bmp");
-    SDL_Surface* player_walking_1_surface = SDL_LoadBMP("dazai_walking_1.bmp");
-    SDL_Surface* player_walking_2_surface = SDL_LoadBMP("dazai_walking_2.bmp");
-    SDL_Surface* chuuya_resting_surface = SDL_LoadBMP("chuuya_resting.bmp");
-    SDL_Surface* chuuya_aggressiv_surface = SDL_LoadBMP("chuuya_aggressiv.bmp");
-    SDL_Surface* player_fighting_right_1 = SDL_LoadBMP("Dazai_fighting_right_1.bmp");
-    SDL_Surface* player_fighting_right_2 = SDL_LoadBMP("Dazai_fighting_right_2.bmp");
-    SDL_Surface* player_fighting_right_3 = SDL_LoadBMP("Dazai_fighting_right_3.bmp");
-    SDL_Surface* player_fighting_left_1 = SDL_LoadBMP("Dazai_fighting_left_1.bmp");
-    SDL_Surface* player_fighting_left_2 = SDL_LoadBMP("Dazai_fighting_left_2.bmp");
-    SDL_Surface* player_fighting_left_3 = SDL_LoadBMP("Dazai_fighting_left_3.bmp");
-    SDL_Surface* chuuya_fighting_right_1 = SDL_LoadBMP("chuuya_fighting_right_1.bmp");
-    SDL_Surface* chuuya_fighting_right_2 = SDL_LoadBMP("chuuya_fighting_right_2.bmp");
-    SDL_Surface* chuuya_fighting_right_3 = SDL_LoadBMP("chuuya_fighting_right_3.bmp");
-    SDL_Surface* chuuya_fighting_left_1 = SDL_LoadBMP("chuuya_fighting_left_1.bmp");
-    SDL_Surface* chuuya_fighting_left_2 = SDL_LoadBMP("chuuya_fighting_left_2.bmp");
-    SDL_Surface* chuuya_fighting_left_3 = SDL_LoadBMP("chuuya_fighting_left_3.bmp");
-
-
-
-    // Check if surfaces loaded successfully
-    if (!backround_surface || !player_resting_1_surface || !player_resting_2_surface || !player_walking_1_surface ||
-        !player_walking_2_surface || !chuuya_resting_surface || !chuuya_aggressiv_surface || !player_fighting_right_1 ||
-        !player_fighting_right_2 || !player_fighting_right_3 || !player_fighting_left_1 || !player_fighting_left_2 ||
-        !player_fighting_left_3 || !chuuya_fighting_right_1 || !chuuya_fighting_right_2 || !chuuya_fighting_right_3 ||
-        !chuuya_fighting_left_1 || !chuuya_fighting_left_2 || !chuuya_fighting_left_3) {
-		consoleout("[SYSTEM]>>Surface Load Error: " + string(SDL_GetError()));
-        return 1;
-    }
-
+  
     // Create Textures from Surfaces
-    SDL_Texture* backround_texture = SDL_CreateTextureFromSurface(renderer, backround_surface);
-    SDL_Texture* player_resting_1_texture = SDL_CreateTextureFromSurface(renderer, player_resting_1_surface);
-    SDL_Texture* player_resting_2_texture = SDL_CreateTextureFromSurface(renderer, player_resting_2_surface);
-    SDL_Texture* player_walking_1_texture = SDL_CreateTextureFromSurface(renderer, player_walking_1_surface);
-    SDL_Texture* player_walking_2_texture = SDL_CreateTextureFromSurface(renderer, player_walking_2_surface);
-    SDL_Texture* chuuya_resting_texture = SDL_CreateTextureFromSurface(renderer, chuuya_resting_surface);
-    SDL_Texture* chuuya_aggressiv_texture = SDL_CreateTextureFromSurface(renderer, chuuya_aggressiv_surface);
-    SDL_Texture* player_fighting_right_1_texture = SDL_CreateTextureFromSurface(renderer, player_fighting_right_1);
-    SDL_Texture* player_fighting_right_2_texture = SDL_CreateTextureFromSurface(renderer, player_fighting_right_2);
-    SDL_Texture* player_fighting_right_3_texture = SDL_CreateTextureFromSurface(renderer, player_fighting_right_3);
-    SDL_Texture* player_fighting_left_1_texture = SDL_CreateTextureFromSurface(renderer, player_fighting_left_1);
-    SDL_Texture* player_fighting_left_2_texture = SDL_CreateTextureFromSurface(renderer, player_fighting_left_2);
-    SDL_Texture* player_fighting_left_3_texture = SDL_CreateTextureFromSurface(renderer, player_fighting_left_3);
-    SDL_Texture* chuuya_fighting_right_1_texture = SDL_CreateTextureFromSurface(renderer, chuuya_fighting_right_1);
-    SDL_Texture* chuuya_fighting_right_2_texture = SDL_CreateTextureFromSurface(renderer, chuuya_fighting_right_2);
-    SDL_Texture* chuuya_fighting_right_3_texture = SDL_CreateTextureFromSurface(renderer, chuuya_fighting_right_3);
-    SDL_Texture* chuuya_fighting_left_1_texture = SDL_CreateTextureFromSurface(renderer, chuuya_fighting_left_1);
-    SDL_Texture* chuuya_fighting_left_2_texture = SDL_CreateTextureFromSurface(renderer, chuuya_fighting_left_2);
-    SDL_Texture* chuuya_fighting_left_3_texture = SDL_CreateTextureFromSurface(renderer, chuuya_fighting_left_3);
+	SDL_Texture* backround_texture = IMG_LoadTexture(renderer, "backround.png");
+	SDL_Texture* player_resting_1_texture = IMG_LoadTexture(renderer, "dazai_resting_1.png");
+    SDL_Texture* player_resting_2_texture = IMG_LoadTexture(renderer, "dazai_resting_2.png");
+    SDL_Texture* player_walking_1_texture = IMG_LoadTexture(renderer, "dazai_walking_1.png");
+    SDL_Texture* player_walking_2_texture = IMG_LoadTexture(renderer, "dazai_walking_2.png");
+    SDL_Texture* chuuya_resting_texture = IMG_LoadTexture(renderer, "chuuya_resting.png");
+    SDL_Texture* chuuya_aggressiv_texture = IMG_LoadTexture(renderer, "chuuya_aggressiv.png");
+    SDL_Texture* player_fighting_right_1_texture = IMG_LoadTexture(renderer, "Dazai_fighting_right_1.png");
+    SDL_Texture* player_fighting_right_2_texture = IMG_LoadTexture(renderer, "Dazai_fighting_right_2.png");
+    SDL_Texture* player_fighting_right_3_texture = IMG_LoadTexture(renderer, "Dazai_fighting_right_3.png");
+    SDL_Texture* player_fighting_left_1_texture = IMG_LoadTexture(renderer, "Dazai_fighting_left_1.png");
+    SDL_Texture* player_fighting_left_2_texture = IMG_LoadTexture(renderer, "Dazai_fighting_left_2.png");
+    SDL_Texture* player_fighting_left_3_texture = IMG_LoadTexture(renderer, "Dazai_fighting_left_3.png");
+    SDL_Texture* chuuya_fighting_right_1_texture = IMG_LoadTexture(renderer, "chuuya_fighting_right_1.png");
+    SDL_Texture* chuuya_fighting_right_2_texture = IMG_LoadTexture(renderer, "chuuya_fighting_right_2.png");
+    SDL_Texture* chuuya_fighting_right_3_texture = IMG_LoadTexture(renderer, "chuuya_fighting_right_3.png");
+    SDL_Texture* chuuya_fighting_left_1_texture = IMG_LoadTexture(renderer, "chuuya_fighting_left_1.png");
+    SDL_Texture* chuuya_fighting_left_2_texture = IMG_LoadTexture(renderer, "chuuya_fighting_left_2.png");
+    SDL_Texture* chuuya_fighting_left_3_texture = IMG_LoadTexture(renderer, "chuuya_fighting_left_3.png");
     SDL_Texture* shooting1P_1_texture = IMG_LoadTexture(renderer, "Shooting1P_1.png");
 	SDL_Texture* shooting1P_2_texture = IMG_LoadTexture(renderer, "Shooting1P_2.png");
 
@@ -175,17 +143,20 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
-    // Define Rectangles for Player, Chuuya, and Background (surface bound->for now)
-    SDL_Rect player_rect = { 100, 100, player_resting_1_surface->w, player_resting_1_surface->h };
-    SDL_Rect chuuya_rect = { 800, 800, chuuya_resting_surface->w, chuuya_resting_surface->h };
-    SDL_Rect backround_rect = { 0, 0, backround_surface->w, backround_surface->h };
+    //Defining rects 
+	SDL_QueryTexture(backround_texture, NULL, NULL, &textureW, &textureH);  
+    SDL_Rect backround_rect = { 0, 0, textureW, textureH };
+    SDL_QueryTexture(player_resting_1_texture, NULL, NULL, &textureW, &textureH);
+    SDL_Rect player_rect = { 100, 100, textureW, textureH };
+	SDL_QueryTexture(chuuya_resting_texture, NULL, NULL, &textureW, &textureH);
+    SDL_Rect chuuya_rect = { 800, 800, textureW, textureH };
+    SDL_QueryTexture(shooting1P_1_texture, NULL, NULL, &textureW, &textureH);
+    SDL_Rect shooting1P_rect = { 620, 676, textureW, textureH };//no need for a rect for the 2 frame because the dimesions are the same for both frames
+
     SDL_Point chuuyaRestingCenter = { chuuya_rect.w / 2, chuuya_rect.h / 2 };
     SDL_Point playerRestingCenter = { player_rect.w / 2, player_rect.h / 2 };
+   
     
-    //Defining rects for shooting "animation" (texture bound->better)
-    SDL_QueryTexture(shooting1P_1_texture, NULL, NULL, &textureW, &textureH);
-	SDL_Rect shooting1P_rect = { 620, 676, textureW, textureH };//no need for a rect for the 2 frame because the dimesions are the same for both frames
-
 
 
     // Timing Variables
@@ -712,20 +683,6 @@ int main(int argc, char* argv[]) {
     SDL_DestroyTexture(chuuya_fighting_left_1_texture);
     SDL_DestroyTexture(chuuya_fighting_left_2_texture);
     SDL_DestroyTexture(chuuya_fighting_left_3_texture);
-
-    SDL_FreeSurface(backround_surface);
-    SDL_FreeSurface(player_resting_1_surface);
-    SDL_FreeSurface(player_resting_2_surface);
-    SDL_FreeSurface(player_walking_1_surface);
-    SDL_FreeSurface(player_walking_2_surface);
-    SDL_FreeSurface(chuuya_resting_surface);
-    SDL_FreeSurface(chuuya_aggressiv_surface);
-    SDL_FreeSurface(player_fighting_right_1);
-    SDL_FreeSurface(player_fighting_right_2);
-    SDL_FreeSurface(player_fighting_right_3);
-    SDL_FreeSurface(player_fighting_left_1);
-    SDL_FreeSurface(player_fighting_left_2);
-    SDL_FreeSurface(player_fighting_left_3);
 
     SDL_DestroyRenderer(renderer);
     SDL_DestroyWindow(window);
