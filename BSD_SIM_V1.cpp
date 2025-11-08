@@ -1,13 +1,13 @@
 /****************************************************************************************
 -------------------------------Information-----------------------------------------------
-Filename:BSD_SIM_V1.cpp 
+Filename:BSD_SIM_V1.cpp
 Version:Pre-Release
 Github Link:github.com/MrHunor/BSD_SIM
 
 Changes Made [Date/Time/Summary of Changes Made]:
-|->11-10-2025/23:50/Reused Project, installed corrosponding (old SDL2) libarys to make it work. 
+|->11-10-2025/23:50/Reused Project, installed corrosponding (old SDL2) libarys to make it work.
 |->12-10-2025/00:28/Ability Bar pretty much works now, need some final cosmetic touches.
-|->12-10-2025/00:45/Added Chuuya Ability bar; 
+|->12-10-2025/00:45/Added Chuuya Ability bar;
 |->14-10-2025/18:39/Added Chuuya ability (needs tweaks)
 |->15-10-2025/19:20/Added Intro to game
 |->16-10-2025/19:10/Created switch logic and created shooting animation surfaces and textures and created gamestatus console command
@@ -15,7 +15,7 @@ Changes Made [Date/Time/Summary of Changes Made]:
 |->07-11-2025/23:10/QOL Changes
 |->08-11-2025/00:17/Added more debug and fps
 |->08-11-2025/21:41/Converted std::cout to consoleout
-
+|->08-11-2025/22:02/converted all bmp to png to save space and have transparency (load via IMG_loadtexture)
 TODO:
 |->Buxfixes needed: Give Abilitybar final tweaks; also make it acutally useful aka add ability bar for chuuya and give him a ability for dazai to nullifiy
 |->Move all the .bmp texture files to a seperate folder to clear up the main folder. (looks horrible in git)
@@ -24,20 +24,21 @@ TODO:
 |->HEALTH BAR IMPORTANT
 |->Create a GAME!->dazai walking aroung, shooting first person at enemys etc..
 |->Add exit crash animaton
-|->convert all bmp to png to save space and have transparency (load via IMG_loadtexture)
+
 |->resize to 1024x1024 (PoT)
 |->ADD PROPER LOGGING AND DEBUG OUPUT FOR GODS SAKE
 ******************************************************************************************/
 
-#include <iostream>
 #include <SDL.h>
 #include <SDL_image.h>
 #include <Windows.h>
-#include "Header.h"
 #include <conio.h>
 
-using namespace std;
+#include <iostream>
 
+#include "Header.h"
+
+using namespace std;
 
 // Global Variables
 bool quit = false;
@@ -68,14 +69,13 @@ string command;
 Uint32 currenttime;
 
 int main(int argc, char* argv[]) {
-    //Startup
+    // Startup
     HWND consoleWindow = GetConsoleWindow();
     CreateLog();
     consoleout("BSD_SIM_V1.0\n");
     consoleout("[DEBUG]>>Debug Mode, y/n?\n");
-	cin>>placeholder;
-    if (placeholder == "y")
-    {
+    cin >> placeholder;
+    if (placeholder == "y") {
         Debug = true;
         consoleout("[DEBUG]>>Debug Mode activated\n");
     }
@@ -84,29 +84,23 @@ int main(int argc, char* argv[]) {
         consoleout("[DEBUG]>>Debug Mode NOT activated\n");
     }
 
-
     consoleout("[SYSTEM]>>Startup started at:" + get_current_time_string() + "\n");
 
     Uint32 general_time = SDL_GetTicks();
-    
-    
-    
-    
-    //Init SDL & other stuff
+
+    // Init SDL & other stuff
     if (SDL_Init(SDL_INIT_EVERYTHING) != 0) {
-		consoleout("[SYSTEM]>>SDL Initialization Error: " + string(SDL_GetError())+"\n");
+        consoleout("[SYSTEM]>>SDL Initialization Error: " + string(SDL_GetError()) + "\n");
         return 1;
     }
- 
 
     // Create Window and Renderer
     SDL_Window* window = SDL_CreateWindow("SDL2 Displaying Image", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 1000, 1000, 0);
     SDL_Renderer* renderer = SDL_CreateRenderer(window, -1, 0);
 
-  
     // Create Textures from Surfaces
-	SDL_Texture* backround_texture = IMG_LoadTexture(renderer, "backround.png");
-	SDL_Texture* player_resting_1_texture = IMG_LoadTexture(renderer, "dazai_resting_1.png");
+    SDL_Texture* backround_texture = IMG_LoadTexture(renderer, "backround.png");
+    SDL_Texture* player_resting_1_texture = IMG_LoadTexture(renderer, "dazai_resting_1.png");
     SDL_Texture* player_resting_2_texture = IMG_LoadTexture(renderer, "dazai_resting_2.png");
     SDL_Texture* player_walking_1_texture = IMG_LoadTexture(renderer, "dazai_walking_1.png");
     SDL_Texture* player_walking_2_texture = IMG_LoadTexture(renderer, "dazai_walking_2.png");
@@ -125,219 +119,116 @@ int main(int argc, char* argv[]) {
     SDL_Texture* chuuya_fighting_left_2_texture = IMG_LoadTexture(renderer, "chuuya_fighting_left_2.png");
     SDL_Texture* chuuya_fighting_left_3_texture = IMG_LoadTexture(renderer, "chuuya_fighting_left_3.png");
     SDL_Texture* shooting1P_1_texture = IMG_LoadTexture(renderer, "Shooting1P_1.png");
-	SDL_Texture* shooting1P_2_texture = IMG_LoadTexture(renderer, "Shooting1P_2.png");
-
-
-
+    SDL_Texture* shooting1P_2_texture = IMG_LoadTexture(renderer, "Shooting1P_2.png");
 
     // Check if textures created successfully
-    if (!backround_texture || !player_resting_1_texture || !player_resting_2_texture || !player_walking_1_texture ||
-        !player_walking_2_texture || !chuuya_resting_texture || !chuuya_aggressiv_texture || !player_fighting_right_1_texture ||
-        !player_fighting_right_2_texture || !player_fighting_right_3_texture || !player_fighting_left_1_texture ||
-        !player_fighting_left_2_texture || !player_fighting_left_3_texture || !chuuya_fighting_right_1_texture ||
-        !chuuya_fighting_right_2_texture || !chuuya_fighting_right_3_texture || !chuuya_fighting_left_1_texture ||
-        !chuuya_fighting_left_2_texture || !chuuya_fighting_left_3_texture|| !shooting1P_1_texture||!shooting1P_2_texture) {
-		consoleout("[SYSTEM]>>Texture Creation Error: " + string(SDL_GetError()));
+    if (!backround_texture || !player_resting_1_texture || !player_resting_2_texture || !player_walking_1_texture || !player_walking_2_texture || !chuuya_resting_texture || !chuuya_aggressiv_texture || !player_fighting_right_1_texture || !player_fighting_right_2_texture || !player_fighting_right_3_texture || !player_fighting_left_1_texture || !player_fighting_left_2_texture || !player_fighting_left_3_texture || !chuuya_fighting_right_1_texture || !chuuya_fighting_right_2_texture || !chuuya_fighting_right_3_texture || !chuuya_fighting_left_1_texture || !chuuya_fighting_left_2_texture || !chuuya_fighting_left_3_texture || !shooting1P_1_texture || !shooting1P_2_texture) {
+        consoleout("[SYSTEM]>>Texture Creation Error: " + string(SDL_GetError()));
         return 1;
     }
 
-    //Defining rects 
-	SDL_QueryTexture(backround_texture, NULL, NULL, &textureW, &textureH);  
+    // Defining rects
+    SDL_QueryTexture(backround_texture, NULL, NULL, &textureW, &textureH);
     SDL_Rect backround_rect = { 0, 0, textureW, textureH };
     SDL_QueryTexture(player_resting_1_texture, NULL, NULL, &textureW, &textureH);
     SDL_Rect player_rect = { 100, 100, textureW, textureH };
-	SDL_QueryTexture(chuuya_resting_texture, NULL, NULL, &textureW, &textureH);
+    SDL_QueryTexture(chuuya_resting_texture, NULL, NULL, &textureW, &textureH);
     SDL_Rect chuuya_rect = { 800, 800, textureW, textureH };
     SDL_QueryTexture(shooting1P_1_texture, NULL, NULL, &textureW, &textureH);
-    SDL_Rect shooting1P_rect = { 620, 676, textureW, textureH };//no need for a rect for the 2 frame because the dimesions are the same for both frames
+    SDL_Rect shooting1P_rect = { 620, 676, textureW, textureH };  // no need for a rect for the 2 frame because the dimesions are the same for both frames
 
     SDL_Point chuuyaRestingCenter = { chuuya_rect.w / 2, chuuya_rect.h / 2 };
     SDL_Point playerRestingCenter = { player_rect.w / 2, player_rect.h / 2 };
-   
-    
-
 
     // Timing Variables
     Uint32 LastFrameSwitch_resting = SDL_GetTicks();
     Uint32 LastFrameSwitch_walking = SDL_GetTicks();
     Uint32 Chuuya_walking_time = SDL_GetTicks();
     Uint32 Chuuya_fighting_time = SDL_GetTicks();
-	Uint32 Chuuya_fighting_cooldown = SDL_GetTicks();
+    Uint32 Chuuya_fighting_cooldown = SDL_GetTicks();
     Uint32 fighting_time = SDL_GetTicks();
     Uint32 fighting_cooldown_time = SDL_GetTicks();
-	Uint32 Debug_time = SDL_GetTicks();
+    Uint32 Debug_time = SDL_GetTicks();
     Uint32 cleanuptime = SDL_GetTicks();
     Uint32 abilitlycountdown = SDL_GetTicks();
     Uint32 shootingcooldown = SDL_GetTicks();
-	Uint32 fpsCounterTimer = SDL_GetTicks();
+    Uint32 fpsCounterTimer = SDL_GetTicks();
     Uint32 fpsLimitTimer = SDL_GetTicks();
     // Event Handling
     SDL_Event event;
     currenttime = SDL_GetTicks();
-   consoleout( "[SYSTEM]>>Startup finished after:" + to_string(currenttime - general_time) + "ms  at:" + get_current_time_string() +"\n");
-    if (!Debug)Intro(renderer);
+    consoleout("[SYSTEM]>>Startup finished after:" + to_string(currenttime - general_time) + "ms  at:" + get_current_time_string() + "\n");
+    if (!Debug) Intro(renderer);
     consoleout("[SYSTEM]>>Program loop started\n");
-    gamestatus = 2;//for testing purposes
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+    gamestatus = 2;  // for testing purposes
 
     // Main Game Loop
     quit = false;
-     while (!quit) {
-         currenttime = SDL_GetTicks();
-        switch(gamestatus)
-        { 
-
-
-        case 0: //console 
+    while (!quit) {
+        currenttime = SDL_GetTicks();
+        switch (gamestatus) {
+        case 0:  // console
 
             quit2 = false;
             SetForegroundWindow(consoleWindow);
             consoleout("[CONSOLE]>>");
-            while(!quit2)
-            {
-                    cin >> command;
-                    if (command == "exit") {
-                        if(gamestatus!=0)
-                        {
-                        consoleout( "[CONSOLE]>>Quitted Console\n");
+            while (!quit2) {
+                cin >> command;
+                if (command == "exit") {
+                    if (gamestatus != 0) {
+                        consoleout("[CONSOLE]>>Quitted Console\n");
                         quit2 = true;
-                        }
-                        else
-                        {
-							consoleout("[CONSOLE]>>You cannot exit the console while in console mode! Change gamestatus first via the gamestatus command.\n");
-							consoleout("[CONSOLE]>>");
-                        }
-                    }
-                    else if (command == "help") {
-                        consoleout("[CONSOLE]>>Commands:\n");
-                        consoleout("[CONSOLE]>>exit: exits the console\n");
-                        consoleout("[CONSOLE]>>help: shows this message\n");
-                        consoleout("[CONSOLE]>>showlog: shows the log\n");
-                        consoleout("[CONSOLE]>>log: put message into log\n");
-                        consoleout("[CONSOLE]>>gamestatus: set gamestatus\n");
-                        consoleout("[CONSOLE]>>fps: set fps limit\n");
-                        consoleout("[CONSOLE]>>");
-
-                    }
-                    else if (command == "fps") {
-                        consoleout("[CONSOLE]>>Current FPS Limit=" + to_string(fpsLimit) + "\n[CONSOLE]>>Enter new FPS limit value(int) :");
-						cin >> fpsLimit;
-						consoleout("\n[CONSOLE]>>FPS limit set to:" + to_string(fpsLimit) + "\n");
-                        consoleout("[CONSOLE]>>");
-                    }
-                    else if (command == "log") {
-                        // Handle log command
-                        consoleout("[CONSOLE]>>Enter message to log(use '_' if you need to write sentences:");
-                        cin >> placeholder;
-                        Log("Console Log:"+placeholder);
-                        consoleout("\n[CONOSOLE]Message logged\n");
-                        consoleout("[CONSOLE]>>");
-                    }
-                    else if (command == "showlog")
-                    {
-                        consoleout("[CONSOLE]>>\n" + ReadLogFileToString() + "\n");
-                        consoleout("[CONSOLE]>>");
-
-
-                    }
-                    else if (command == "gamestatus")
-                    {
-                        consoleout("[CONSOLE]>>Current Game Status=" + to_string(gamestatus) + "\n[CONSOLE]>>Enter new gamestatus value(int) :");
-                        cin >> gamestatus;
-                        consoleout("[CONSOLE]>>Gamestatus set to:" + to_string(gamestatus) + "\n");
-                        consoleout("[CONSOLE]>>");
                     }
                     else {
-                        consoleout("[CONSOLE]>>Command not found\n");
+                        consoleout("[CONSOLE]>>You cannot exit the console while in console mode! Change gamestatus first via the gamestatus command.\n");
                         consoleout("[CONSOLE]>>");
                     }
-                
-              
+                }
+                else if (command == "help") {
+                    consoleout("[CONSOLE]>>Commands:\n");
+                    consoleout("[CONSOLE]>>exit: exits the console\n");
+                    consoleout("[CONSOLE]>>help: shows this message\n");
+                    consoleout("[CONSOLE]>>showlog: shows the log\n");
+                    consoleout("[CONSOLE]>>log: put message into log\n");
+                    consoleout("[CONSOLE]>>gamestatus: set gamestatus\n");
+                    consoleout("[CONSOLE]>>fps: set fps limit\n");
+                    consoleout("[CONSOLE]>>");
+
+                }
+                else if (command == "fps") {
+                    consoleout("[CONSOLE]>>Current FPS Limit=" + to_string(fpsLimit) + "\n[CONSOLE]>>Enter new FPS limit value(int) :");
+                    cin >> fpsLimit;
+                    consoleout("\n[CONSOLE]>>FPS limit set to:" + to_string(fpsLimit) + "\n");
+                    consoleout("[CONSOLE]>>");
+                }
+                else if (command == "log") {
+                    // Handle log command
+                    consoleout("[CONSOLE]>>Enter message to log(use '_' if you need to write sentences:");
+                    cin >> placeholder;
+                    Log("Console Log:" + placeholder);
+                    consoleout("\n[CONOSOLE]Message logged\n");
+                    consoleout("[CONSOLE]>>");
+                }
+                else if (command == "showlog") {
+                    consoleout("[CONSOLE]>>\n" + ReadLogFileToString() + "\n");
+                    consoleout("[CONSOLE]>>");
+
+                }
+                else if (command == "gamestatus") {
+                    consoleout("[CONSOLE]>>Current Game Status=" + to_string(gamestatus) + "\n[CONSOLE]>>Enter new gamestatus value(int) :");
+                    cin >> gamestatus;
+                    consoleout("[CONSOLE]>>Gamestatus set to:" + to_string(gamestatus) + "\n");
+                    consoleout("[CONSOLE]>>");
+                }
+                else {
+                    consoleout("[CONSOLE]>>Command not found\n");
+                    consoleout("[CONSOLE]>>");
+                }
             }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
         case 1:
-            if (currenttime - fpsLimitTimer > (1000 / fpsLimit))
-            {
-				fpsLimitTimer = currenttime;
+            if (currenttime - fpsLimitTimer > (1000 / fpsLimit)) {
+                fpsLimitTimer = currenttime;
                 walking = false;
                 // Handle Events
                 while (SDL_PollEvent(&event)) {
@@ -347,13 +238,47 @@ int main(int argc, char* argv[]) {
                     }
                     else if (event.type == SDL_KEYDOWN) {
                         switch (event.key.keysym.sym) {
-                        case SDLK_w: if (player_rect.y > 10) { walking = true; player_rect.y -= 10; Log("player coordinates changed to:" + to_string(player_rect.x) + "," + to_string(player_rect.y)); } break;
-                        case SDLK_s: if (player_rect.y < 950){walking = true; player_rect.y += 10; Log("player coordinates changed to:" + to_string(player_rect.x) + "," + to_string(player_rect.y));} break;
-                        case SDLK_a: if(player_rect.x>10){walking = true; player_rect.x -= 10; Log("player coordinates changed to:" + to_string(player_rect.x) + "," + to_string(player_rect.y));} break;
-                        case SDLK_d: if (player_rect.x < 900){walking = true; player_rect.x += 10; Log("player coordinates changed to:" + to_string(player_rect.x) + "," + to_string(player_rect.y));} break;
-                        case SDLK_e: if (!fighting) { fighting = true; fighting_time = SDL_GetTicks(); hit_took = false; } break;
-                        case SDLK_ESCAPE:  quit = true; break;
-                        case SDLK_c: gamestatus = 0; break;
+                        case SDLK_w:
+                            if (player_rect.y > 10) {
+                                walking = true;
+                                player_rect.y -= 10;
+                                Log("player coordinates changed to:" + to_string(player_rect.x) + "," + to_string(player_rect.y));
+                            }
+                            break;
+                        case SDLK_s:
+                            if (player_rect.y < 950) {
+                                walking = true;
+                                player_rect.y += 10;
+                                Log("player coordinates changed to:" + to_string(player_rect.x) + "," + to_string(player_rect.y));
+                            }
+                            break;
+                        case SDLK_a:
+                            if (player_rect.x > 10) {
+                                walking = true;
+                                player_rect.x -= 10;
+                                Log("player coordinates changed to:" + to_string(player_rect.x) + "," + to_string(player_rect.y));
+                            }
+                            break;
+                        case SDLK_d:
+                            if (player_rect.x < 900) {
+                                walking = true;
+                                player_rect.x += 10;
+                                Log("player coordinates changed to:" + to_string(player_rect.x) + "," + to_string(player_rect.y));
+                            }
+                            break;
+                        case SDLK_e:
+                            if (!fighting) {
+                                fighting = true;
+                                fighting_time = SDL_GetTicks();
+                                hit_took = false;
+                            }
+                            break;
+                        case SDLK_ESCAPE:
+                            quit = true;
+                            break;
+                        case SDLK_c:
+                            gamestatus = 0;
+                            break;
                         }
                     }
                 }
@@ -386,8 +311,6 @@ int main(int argc, char* argv[]) {
                     }
                 }
 
-
-
                 // Render Player
                 if (walking) {
                     if (display_frame1_walking)
@@ -404,33 +327,40 @@ int main(int argc, char* argv[]) {
                 else {
                     if (chuuya_rect.x > player_rect.x) {
                         switch (fighting_frame_player) {
-                        case 1: SDL_RenderCopy(renderer, player_fighting_right_1_texture, NULL, &player_rect); break;
-                        case 2: SDL_RenderCopy(renderer, player_fighting_right_2_texture, NULL, &player_rect); break;
-                        case 3: SDL_RenderCopy(renderer, player_fighting_right_3_texture, NULL, &player_rect); break;
+                        case 1:
+                            SDL_RenderCopy(renderer, player_fighting_right_1_texture, NULL, &player_rect);
+                            break;
+                        case 2:
+                            SDL_RenderCopy(renderer, player_fighting_right_2_texture, NULL, &player_rect);
+                            break;
+                        case 3:
+                            SDL_RenderCopy(renderer, player_fighting_right_3_texture, NULL, &player_rect);
+                            break;
                         }
                     }
                     else {
                         switch (fighting_frame_player) {
-                        case 1: SDL_RenderCopy(renderer, player_fighting_left_1_texture, NULL, &player_rect); break;
-                        case 2: SDL_RenderCopy(renderer, player_fighting_left_2_texture, NULL, &player_rect); break;
-                        case 3: SDL_RenderCopy(renderer, player_fighting_left_3_texture, NULL, &player_rect); break;
+                        case 1:
+                            SDL_RenderCopy(renderer, player_fighting_left_1_texture, NULL, &player_rect);
+                            break;
+                        case 2:
+                            SDL_RenderCopy(renderer, player_fighting_left_2_texture, NULL, &player_rect);
+                            break;
+                        case 3:
+                            SDL_RenderCopy(renderer, player_fighting_left_3_texture, NULL, &player_rect);
+                            break;
                         }
                     }
                 }
 
-                if (currenttime - abilitlycountdown > 300)
-                {
-                    if (playerability < 115)playerability = playerability + 5;
-                    if (chuuyaability < 115)chuuyaability = chuuyaability + 3;
+                if (currenttime - abilitlycountdown > 300) {
+                    if (playerability < 115) playerability = playerability + 5;
+                    if (chuuyaability < 115) chuuyaability = chuuyaability + 3;
                     abilitlycountdown = currenttime;
-
                 }
 
                 render_abilitly_meter(renderer, playerability, player_rect);
                 render_abilitly_meter(renderer, chuuyaability, chuuya_rect);
-
-
-
 
                 // Render Chuuya
                 if (Is_within_range(player_rect, chuuya_rect, 300)) {
@@ -449,16 +379,28 @@ int main(int argc, char* argv[]) {
                     else {
                         if (player_rect.x > chuuya_rect.x) {
                             switch (fighting_frame_chuuya) {
-                            case 1: SDL_RenderCopy(renderer, chuuya_fighting_right_1_texture, NULL, &chuuya_rect); break;
-                            case 2: SDL_RenderCopy(renderer, chuuya_fighting_right_2_texture, NULL, &chuuya_rect); break;
-                            case 3: SDL_RenderCopy(renderer, chuuya_fighting_right_3_texture, NULL, &chuuya_rect); break;
+                            case 1:
+                                SDL_RenderCopy(renderer, chuuya_fighting_right_1_texture, NULL, &chuuya_rect);
+                                break;
+                            case 2:
+                                SDL_RenderCopy(renderer, chuuya_fighting_right_2_texture, NULL, &chuuya_rect);
+                                break;
+                            case 3:
+                                SDL_RenderCopy(renderer, chuuya_fighting_right_3_texture, NULL, &chuuya_rect);
+                                break;
                             }
                         }
                         else {
                             switch (fighting_frame_chuuya) {
-                            case 1: SDL_RenderCopy(renderer, chuuya_fighting_left_1_texture, NULL, &chuuya_rect); break;
-                            case 2: SDL_RenderCopy(renderer, chuuya_fighting_left_2_texture, NULL, &chuuya_rect); break;
-                            case 3: SDL_RenderCopy(renderer, chuuya_fighting_left_3_texture, NULL, &chuuya_rect); break;
+                            case 1:
+                                SDL_RenderCopy(renderer, chuuya_fighting_left_1_texture, NULL, &chuuya_rect);
+                                break;
+                            case 2:
+                                SDL_RenderCopy(renderer, chuuya_fighting_left_2_texture, NULL, &chuuya_rect);
+                                break;
+                            case 3:
+                                SDL_RenderCopy(renderer, chuuya_fighting_left_3_texture, NULL, &chuuya_rect);
+                                break;
                             }
                         }
                     }
@@ -475,8 +417,7 @@ int main(int argc, char* argv[]) {
                         chuuya_rect.x = 9999;
                     }
 
-                    if (playerhealth <= 0)
-                    {
+                    if (playerhealth <= 0) {
                         consoleout("[GAME]>>Player: 'Dazai' is defeated!\n");
                         quit = true;
                     }
@@ -495,22 +436,23 @@ int main(int argc, char* argv[]) {
                     }
 
                     if (chuuya_aggressiv && currenttime - Chuuya_walking_time > 200 && !Is_within_range(chuuya_rect, player_rect, 50)) {
-                        if (chuuya_rect.x > player_rect.x) chuuya_rect.x -= 10;
-                        else if (chuuya_rect.x < player_rect.x) chuuya_rect.x += 10;
-                        else if (chuuya_rect.y > player_rect.y) chuuya_rect.y -= 10;
-                        else if (chuuya_rect.y < player_rect.y) chuuya_rect.y += 10;
+                        if (chuuya_rect.x > player_rect.x)
+                            chuuya_rect.x -= 10;
+                        else if (chuuya_rect.x < player_rect.x)
+                            chuuya_rect.x += 10;
+                        else if (chuuya_rect.y > player_rect.y)
+                            chuuya_rect.y -= 10;
+                        else if (chuuya_rect.y < player_rect.y)
+                            chuuya_rect.y += 10;
 
                         Chuuya_walking_time = currenttime;
                     }
 
-
-                    if (chuuyaability > 110 && Is_within_range(player_rect, chuuya_rect, 50))
-                    {
-                        //play ability animation 
+                    if (chuuyaability > 110 && Is_within_range(player_rect, chuuya_rect, 50)) {
+                        // play ability animation
                         SDL_RenderCopy(renderer, backround_texture, 0, &backround_rect);
                         SDL_RenderCopy(renderer, chuuya_resting_texture, NULL, &chuuya_rect);
-                        for (size_t i = 0; i < 720; i++)
-                        {
+                        for (size_t i = 0; i < 720; i++) {
                             SDL_RenderCopy(renderer, backround_texture, 0, &backround_rect);
                             SDL_RenderCopy(renderer, chuuya_resting_texture, NULL, &chuuya_rect);
                             SDL_RenderCopyEx(renderer, player_resting_1_texture, 0, &player_rect, i, &playerRestingCenter, SDL_FLIP_NONE);
@@ -520,28 +462,18 @@ int main(int argc, char* argv[]) {
 
                         playerhealth -= 20;
                         chuuyaability = 0;
-
-
                     }
-
-
-
-
                 }
 
-
-                //fps debug prep
-                if (currenttime - fpsCounterTimer > 1000)
-                {
+                // fps debug prep
+                if (currenttime - fpsCounterTimer > 1000) {
                     lastFpsCount = fpsCounter;
                     fpsCounter = 0;
                     fpsCounterTimer = currenttime;
                 }
 
-
-                //Debug handling 
-                if (Debug && currenttime - Debug_time > 500)
-                {
+                // Debug handling
+                if (Debug && currenttime - Debug_time > 500) {
                     consoleout("[DEBUG]>>Gametime:" + to_string(SDL_GetTicks()) + "\n");
                     consoleout("[DEBUG]>>FPS:" + to_string(lastFpsCount) + "\n");
                     consoleout("[DEBUG]>>RAM Usage:" + to_string(GetMemoryUsage()) + " MB" + "\n");
@@ -555,110 +487,98 @@ int main(int argc, char* argv[]) {
                     consoleout("[DEBUG]>>Chuuyaabilitymeter:" + to_string(chuuyaability) + "\n");
                     consoleout("[DEBUG]>>This message will be displayed again in 500ms\n\n");
                     Debug_time = currenttime;
-
-
                 }
-
-
 
                 // Present Renderer
                 SDL_RenderPresent(renderer);
                 fpsCounter++;
             }
-        break;
+            break;
 
-
-
-
-
-
-
-
-
-
-
-        case 2://Shooting game first person - Practice 
+        case 2:  // Shooting game first person - Practice
             quit2 = false;
-			SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
-        SDL_RenderClear(renderer);
-        while (!quit2)
-        {
-			currenttime = SDL_GetTicks();
-            if (currenttime - fpsLimitTimer > (1000 / fpsLimit))
-            {
-                fpsLimitTimer = currenttime;
+            SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
+            SDL_RenderClear(renderer);
+            while (!quit2) {
                 currenttime = SDL_GetTicks();
-                SDL_RenderCopy(renderer, shooting1P_1_texture, 0, &shooting1P_rect);
+                if (currenttime - fpsLimitTimer > (1000 / fpsLimit)) {
+                    fpsLimitTimer = currenttime;
+                    currenttime = SDL_GetTicks();
+                    SDL_RenderCopy(renderer, shooting1P_1_texture, 0, &shooting1P_rect);
 
-                while (SDL_PollEvent(&event)) {
-                    if (event.type == SDL_QUIT) {
-                        quit = true;
-                    }
+                    while (SDL_PollEvent(&event)) {
+                        if (event.type == SDL_QUIT) {
+                            quit = true;
+                            quit2 = true;
+                        }
 
-                    else if (event.type == SDL_KEYDOWN) {
-                        switch (event.key.keysym.sym) {
-                        case SDLK_c: gamestatus = 0; quit2 = true; break;
-                        case SDLK_ESCAPE: quit = true; break;
-                        case SDLK_w: if (shooting1P_rect.y > 300) shooting1P_rect.y -= 100; SDL_RenderClear(renderer); break;
-                        case SDLK_s: if (shooting1P_rect.y < 676) shooting1P_rect.y += 100; SDL_RenderClear(renderer); break;
-                        case SDLK_a: if (shooting1P_rect.x > 300) shooting1P_rect.x -= 100; SDL_RenderClear(renderer); break;
-                        case SDLK_d: if (shooting1P_rect.x < 620) shooting1P_rect.x += 100; SDL_RenderClear(renderer); break;
-                        case SDLK_e://shoot
-                            if (currenttime - shootingcooldown > 200)
-                            {
+                        else if (event.type == SDL_KEYDOWN) {
+                            switch (event.key.keysym.sym) {
+                            case SDLK_c:
+                                gamestatus = 0;
+                                quit2 = true;
+                                break;
+                            case SDLK_ESCAPE:
+                                quit = true;
+                                break;
+                            case SDLK_w:
+                                if (shooting1P_rect.y > 300) shooting1P_rect.y -= 100;
                                 SDL_RenderClear(renderer);
-                                SDL_RenderCopy(renderer, shooting1P_2_texture, 0, &shooting1P_rect);
-                                SDL_RenderPresent(renderer);
-                                SDL_Delay(100);
+                                break;
+                            case SDLK_s:
+                                if (shooting1P_rect.y < 676) shooting1P_rect.y += 100;
                                 SDL_RenderClear(renderer);
-                                shootingcooldown = currenttime;
+                                break;
+                            case SDLK_a:
+                                if (shooting1P_rect.x > 300) shooting1P_rect.x -= 100;
+                                SDL_RenderClear(renderer);
+                                break;
+                            case SDLK_d:
+                                if (shooting1P_rect.x < 620) shooting1P_rect.x += 100;
+                                SDL_RenderClear(renderer);
+                                break;
+                            case SDLK_e:  // shoot
+                                if (currenttime - shootingcooldown > 200) {
+                                    SDL_RenderClear(renderer);
+                                    SDL_RenderCopy(renderer, shooting1P_2_texture, 0, &shooting1P_rect);
+                                    SDL_RenderPresent(renderer);
+                                    SDL_Delay(100);
+                                    SDL_RenderClear(renderer);
+                                    shootingcooldown = currenttime;
+                                }
+                                break;
                             }
-                            break;
-
-
-
-
-
                         }
                     }
+
+                    // fps debug prep
+                    if (currenttime - fpsCounterTimer > 1000) {
+                        lastFpsCount = fpsCounter;
+                        fpsCounter = 0;
+                        fpsCounterTimer = currenttime;
+                    }
+
+                    if (Debug && currenttime - Debug_time > 500) {
+                        consoleout("[DEBUG]>>Gametime:" + to_string(SDL_GetTicks()) + "\n");
+                        consoleout("[DEBUG]>>FPS:" + to_string(lastFpsCount) + "\n");
+                        consoleout("[DEBUG]>>RAM Usage:" + to_string(GetMemoryUsage()) + " MB" + "\n");
+                        consoleout("[DEBUG]>>This message will be displayed again in 500ms\n\n");
+                        Debug_time = currenttime;
+                    }
+
+                    SDL_RenderPresent(renderer);
+                    fpsCounter++;
                 }
-
-                //fps debug prep
-                if (currenttime - fpsCounterTimer > 1000)
-                {
-                    lastFpsCount = fpsCounter;
-                    fpsCounter = 0;
-                    fpsCounterTimer = currenttime;
-                }
-
-
-                if (Debug && currenttime - Debug_time > 500)
-                {
-					consoleout("[DEBUG]>>Gametime:" + to_string(SDL_GetTicks()) + "\n");
-                    consoleout("[DEBUG]>>FPS:" + to_string(lastFpsCount) + "\n");
-                    consoleout("[DEBUG]>>RAM Usage:" + to_string(GetMemoryUsage()) + " MB" + "\n");
-                    consoleout("[DEBUG]>>This message will be displayed again in 500ms\n\n");
-                    Debug_time = currenttime;
-
-
-                }
-
-
-
-
-                SDL_RenderPresent(renderer);
-                fpsCounter++;
             }
-        }
 
-        break;
+            break;
         default:
-			consoleout("[GAME]>>Error: Unknown gamestatus value:" + to_string(gamestatus) + "\nShutting down...");
+            consoleout("[GAME]>>Error: Unknown gamestatus value:" + to_string(gamestatus) + "\nShutting down...");
             quit = true;
-     }
+        }
     }
     play_exit_animation(renderer);
-	consoleout("[SYSTEM]>>Exited Game Loop. Starting cleanup at:" + get_current_time_string()+"\n");
+    consoleout("[SYSTEM]>>Exited Game Loop. Starting cleanup at:" + get_current_time_string() + "\n");
     cleanuptime = SDL_GetTicks();
     // Clean Up Resources
     SDL_DestroyTexture(backround_texture);
