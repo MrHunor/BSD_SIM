@@ -17,3 +17,4 @@ extern bool overwriteToFile(const std::string& filename, const std::string& cont
 extern string read_file_to_string(string file_path);
 extern void Intro(SDL_Renderer* renderer);
 extern float GetMemoryUsage();
+extern string get_current_clock_string();

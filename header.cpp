@@ -88,13 +88,7 @@ void Intro(SDL_Renderer* renderer)
 
 
 
-string get_current_time_string() {
-	auto now = chrono::system_clock::now();
-	auto in_time_t = chrono::system_clock::to_time_t(now);
-	stringstream ss;
-	ss << put_time(localtime(&in_time_t), "%Y-%m-%d|%H-%M-%S");
-	return ss.str();
-}
+
 
 
 // Writes the given content to a file in the executing directory.
@@ -193,10 +187,40 @@ std::string getLineFromFile(const std::string& filePath, int lineNumber) {
 	cout << "Line number exceeds the total lines in the file.(Error in getLineFromFile)" << endl;
 	exit(1);
 }
+
+string get_current_clock_string() {
+	using namespace chrono;
+
+	// Get current time point
+	auto now = system_clock::now();
+
+	// Convert to time_t for HH-MM-SS
+	auto in_time_t = system_clock::to_time_t(now);
+
+	// Extract milliseconds
+	auto ms = duration_cast<milliseconds>(now.time_since_epoch()) % 1000;
+
+	// Format time into string
+	stringstream ss;
+	ss << put_time(localtime(&in_time_t), "%H-%M-%S")
+		<< "-" << setfill('0') << setw(3) << ms.count(); // append milliseconds
+
+	return ss.str();
+}
+
+string get_current_time_string() {
+	auto now = chrono::system_clock::now();
+	auto in_time_t = chrono::system_clock::to_time_t(now);
+	stringstream ss;
+	ss << put_time(localtime(&in_time_t), "%Y-%m-%d|%H-%M-%S");
+	return ss.str();
+}
+
+
 void Log(const string& message) {
 
 	ofstream logFile("latest.log", ios_base::app);
-	logFile << message << endl;
+	logFile << get_current_clock_string() <<":"<<  message << endl;
 	logFile.close();
 }
 

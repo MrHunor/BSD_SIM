@@ -14,6 +14,7 @@ Changes Made [Date/Time/Summary of Changes Made]:
 |->16-10-2025/20:30/Created basic shooting first person game mode (gamestatus 2)
 |->07-11-2025/23:10/QOL Changes
 |->08-11-2025/00:17/Added more debug and fps
+|->08-11-2025/21:41/Converted std::cout to consoleout
 
 TODO:
 |->Buxfixes needed: Give Abilitybar final tweaks; also make it acutally useful aka add ability bar for chuuya and give him a ability for dazai to nullifiy
@@ -26,7 +27,6 @@ TODO:
 |->convert all bmp to png to save space and have transparency (load via IMG_loadtexture)
 |->resize to 1024x1024 (PoT)
 |->ADD PROPER LOGGING AND DEBUG OUPUT FOR GODS SAKE
-|->CONVERT ALL COUT TO CONSOLEOUT!!!!!!!!!!!!!!!!!!!
 ******************************************************************************************/
 
 #include <iostream>
@@ -71,23 +71,21 @@ int main(int argc, char* argv[]) {
     //Startup
     HWND consoleWindow = GetConsoleWindow();
     CreateLog();
-    std::cout << "BSD_SIM_V1.0\n";
-	std::cout << "[DEBUG]>>Debug Mode, y/n?\n";
+    consoleout("BSD_SIM_V1.0\n");
+    consoleout("[DEBUG]>>Debug Mode, y/n?\n");
 	cin>>placeholder;
     if (placeholder == "y")
     {
         Debug = true;
-        std::cout << "[DEBUG]>>Debug Mode activated\n"; 
-		Log("Debug activated");
+        consoleout("[DEBUG]>>Debug Mode activated\n");
     }
     else {
         Debug = false;
-        std::cout << "[DEBUG]>>Debug Mode NOT activated\n";
-        Log("Debug not activated");
+        consoleout("[DEBUG]>>Debug Mode NOT activated\n");
     }
 
 
-    std::cout << "[SYSTEM]>>Startup started at:" << get_current_time_string() << endl;
+    consoleout("[SYSTEM]>>Startup started at:" + get_current_time_string() + "\n");
 
     Uint32 general_time = SDL_GetTicks();
     
@@ -96,7 +94,7 @@ int main(int argc, char* argv[]) {
     
     //Init SDL & other stuff
     if (SDL_Init(SDL_INIT_EVERYTHING) != 0) {
-        cerr << "SDL_Init Error: " << SDL_GetError() << endl;
+		consoleout("[SYSTEM]>>SDL Initialization Error: " + string(SDL_GetError())+"\n");
         return 1;
     }
  
@@ -176,9 +174,9 @@ int main(int argc, char* argv[]) {
     // Event Handling
     SDL_Event event;
     currenttime = SDL_GetTicks();
-    std::cout << "[SYSTEM]>>Startup finished after:" << currenttime - general_time << "ms " << "at:" << get_current_time_string() << endl;
+   consoleout( "[SYSTEM]>>Startup finished after:" + to_string(currenttime - general_time) + "ms  at:" + get_current_time_string() +"\n");
     if (!Debug)Intro(renderer);
-    std::cout << "[SYSTEM]>>Program loop started\n";
+    consoleout("[SYSTEM]>>Program loop started\n");
     gamestatus = 2;//for testing purposes
 
 
@@ -253,64 +251,64 @@ int main(int argc, char* argv[]) {
 
             quit2 = false;
             SetForegroundWindow(consoleWindow);
-            std::cout << "[CONSOLE]>>";
+            consoleout("[CONSOLE]>>");
             while(!quit2)
             {
                     cin >> command;
                     if (command == "exit") {
                         if(gamestatus!=0)
                         {
-                        std::cout << "[CONSOLE]>>Quitted Console\n";
+                        consoleout( "[CONSOLE]>>Quitted Console\n");
                         quit2 = true;
                         }
                         else
                         {
-							cout << "[CONSOLE]>>You cannot exit the console while in console mode! Change gamestatus first via the gamestatus command.\n";
-							cout << "[CONSOLE]>>";
+							consoleout("[CONSOLE]>>You cannot exit the console while in console mode! Change gamestatus first via the gamestatus command.\n");
+							consoleout("[CONSOLE]>>");
                         }
                     }
                     else if (command == "help") {
-                        std::cout << "[CONSOLE]>>Commands:\n";
-                        std::cout << "[CONSOLE]>>exit: exits the console\n";
-                        std::cout << "[CONSOLE]>>help: shows this message\n";
-                        std::cout << "[CONSOLE]>>showlog: shows the log\n";
-                        std::cout << "[CONSOLE]>>log: put message into log\n";
-                        std::cout << "[CONSOLE]>>gamestatus: set gamestatus\n";
-						std::cout << "[CONSOLE]>>fps: set fps limit\n";
-                        std::cout << "[CONSOLE]>>";
+                        consoleout("[CONSOLE]>>Commands:\n");
+                        consoleout("[CONSOLE]>>exit: exits the console\n");
+                        consoleout("[CONSOLE]>>help: shows this message\n");
+                        consoleout("[CONSOLE]>>showlog: shows the log\n");
+                        consoleout("[CONSOLE]>>log: put message into log\n");
+                        consoleout("[CONSOLE]>>gamestatus: set gamestatus\n");
+                        consoleout("[CONSOLE]>>fps: set fps limit\n");
+                        consoleout("[CONSOLE]>>");
 
                     }
                     else if (command == "fps") {
-						std::cout << "[CONSOLE]>>Current FPS Limit=" + to_string(fpsLimit) + "\nEnter new FPS limit value(int) :";
+                        consoleout("[CONSOLE]>>Current FPS Limit=" + to_string(fpsLimit) + "\n[CONSOLE]>>Enter new FPS limit value(int) :");
 						cin >> fpsLimit;
 						consoleout("\n[CONSOLE]>>FPS limit set to:" + to_string(fpsLimit) + "\n");
-						std::cout << "[CONSOLE]>>";
+                        consoleout("[CONSOLE]>>");
                     }
                     else if (command == "log") {
                         // Handle log command
-                        std::cout << "[CONSOLE]>>Enter message to log(use '_' if you need to write sentences:";
+                        consoleout("[CONSOLE]>>Enter message to log(use '_' if you need to write sentences:");
                         cin >> placeholder;
-                        Log(placeholder);
-                        std::cout << "\n[CONOSOLE]Message logged\n";
-                        std::cout << "[CONSOLE]>>";
+                        Log("Console Log:"+placeholder);
+                        consoleout("\n[CONOSOLE]Message logged\n");
+                        consoleout("[CONSOLE]>>");
                     }
                     else if (command == "showlog")
                     {
-                        std::cout << "[CONSOLE]>>\n" << ReadLogFileToString() << endl;
-                        std::cout << "[CONSOLE]>>";
+                        consoleout("[CONSOLE]>>\n" + ReadLogFileToString() + "\n");
+                        consoleout("[CONSOLE]>>");
 
 
                     }
                     else if (command == "gamestatus")
                     {
-                        std::cout << "[CONSOLE]>>Current Game Status=" + to_string(gamestatus) + "\nEnter new gamestatus value(int) :";
+                        consoleout("[CONSOLE]>>Current Game Status=" + to_string(gamestatus) + "\n[CONSOLE]>>Enter new gamestatus value(int) :");
                         cin >> gamestatus;
                         consoleout("[CONSOLE]>>Gamestatus set to:" + to_string(gamestatus) + "\n");
                         consoleout("[CONSOLE]>>");
                     }
                     else {
-                        std::cout << "[CONSOLE]>>Command not found\n";
-                        std::cout << "[CONSOLE]>>";
+                        consoleout("[CONSOLE]>>Command not found\n");
+                        consoleout("[CONSOLE]>>");
                     }
                 
               
@@ -354,7 +352,7 @@ int main(int argc, char* argv[]) {
                         case SDLK_a: if(player_rect.x>10){walking = true; player_rect.x -= 10; Log("player coordinates changed to:" + to_string(player_rect.x) + "," + to_string(player_rect.y));} break;
                         case SDLK_d: if (player_rect.x < 900){walking = true; player_rect.x += 10; Log("player coordinates changed to:" + to_string(player_rect.x) + "," + to_string(player_rect.y));} break;
                         case SDLK_e: if (!fighting) { fighting = true; fighting_time = SDL_GetTicks(); hit_took = false; } break;
-                        case SDLK_ESCAPE: play_exit_animation(renderer); quit = true; break;
+                        case SDLK_ESCAPE:  quit = true; break;
                         case SDLK_c: gamestatus = 0; break;
                         }
                     }
@@ -469,18 +467,17 @@ int main(int argc, char* argv[]) {
                     if (Is_within_range(player_rect, chuuya_rect, 50) && fighting && !hit_took) {
                         hit_took = true;
                         chuuyahealth -= 10;
-                        Log("[GAME]>>Enemy: 'Chuuya' took a hit!");
+                        consoleout("[GAME]>>Enemy: 'Chuuya' took a hit!\n");
                     }
                     if (chuuyahealth <= 0 && chuuya_rect.x != 9999) {
-                        Log("[GAME]>>Enemy: 'Chuuya' is defeated!");
+                        consoleout("[GAME]>>Enemy: 'Chuuya' is defeated!\n");
                         chuuya_aggressiv = false;
                         chuuya_rect.x = 9999;
                     }
 
                     if (playerhealth <= 0)
                     {
-                        Log("[GAME]>>Player: 'Dazai' is defeated!");
-                        play_exit_animation(renderer);
+                        consoleout("[GAME]>>Player: 'Dazai' is defeated!\n");
                         quit = true;
                     }
 
@@ -493,7 +490,7 @@ int main(int argc, char* argv[]) {
 
                     if (chuuya_fighting && currenttime - Chuuya_fighting_cooldown > 500) {
                         playerhealth -= 10;
-                        Log("[GAME]>>Player: 'Dazai' took a hit!");
+                        consoleout("[GAME]>>Player: 'Dazai' took a hit!\n");
                         Chuuya_fighting_cooldown = currenttime;
                     }
 
@@ -545,18 +542,18 @@ int main(int argc, char* argv[]) {
                 //Debug handling 
                 if (Debug && currenttime - Debug_time > 500)
                 {
-                    std::cout << "[DEBUG]>>Gametime:" << SDL_GetTicks() << endl;
-                    std::cout << "[DEBUG]>>FPS:" << lastFpsCount << endl;
-                    std::cout << "[DEBUG]>>RAM Usage:" << GetMemoryUsage() << " MB" << endl;
-                    std::cout << "[DEBUG]>>Player coordinates:" << player_rect.x << "," << player_rect.y << endl;
-                    std::cout << "[DEBUG]>>Player health:" << playerhealth << endl;
-                    std::cout << "[DEBUG]>>Chuuya coordinates:" << chuuya_rect.x << "," << chuuya_rect.y << endl;
-                    std::cout << "[DEBUG]>>Chuuya health:" << chuuyahealth << endl;
-                    std::cout << "[DEBUG]>>Chuuya_aggressiv:" << chuuya_aggressiv << endl;
-                    std::cout << "[DEBUG]>>Distance between player and chuuya:" << Get_distance_between_rects(player_rect, chuuya_rect) << endl;
-                    std::cout << "[DEBUG]>>Playerabilitymeter:" << playerability << endl;
-                    std::cout << "[DEBUG]>>Chuuyaabilitymeter:" << chuuyaability << endl;
-                    std::cout << "[DEBUG]>>This message will be displayed again in 500ms\n\n";
+                    consoleout("[DEBUG]>>Gametime:" + to_string(SDL_GetTicks()) + "\n");
+                    consoleout("[DEBUG]>>FPS:" + to_string(lastFpsCount) + "\n");
+                    consoleout("[DEBUG]>>RAM Usage:" + to_string(GetMemoryUsage()) + " MB" + "\n");
+                    consoleout("[DEBUG]>>Player coordinates:" + to_string(player_rect.x) + "," + to_string(player_rect.y) + "\n");
+                    consoleout("[DEBUG]>>Player health:" + to_string(playerhealth) + "\n");
+                    consoleout("[DEBUG]>>Chuuya coordinates:" + to_string(chuuya_rect.x) + "," + to_string(chuuya_rect.y) + "\n");
+                    consoleout("[DEBUG]>>Chuuya health:" + to_string(chuuyahealth) + "\n");
+                    consoleout("[DEBUG]>>Chuuya_aggressiv:" + to_string(chuuya_aggressiv) + "\n");
+                    consoleout("[DEBUG]>>Distance between player and chuuya:" + to_string(Get_distance_between_rects(player_rect, chuuya_rect)) + "\n");
+                    consoleout("[DEBUG]>>Playerabilitymeter:" + to_string(playerability) + "\n");
+                    consoleout("[DEBUG]>>Chuuyaabilitymeter:" + to_string(chuuyaability) + "\n");
+                    consoleout("[DEBUG]>>This message will be displayed again in 500ms\n\n");
                     Debug_time = currenttime;
 
 
@@ -601,7 +598,7 @@ int main(int argc, char* argv[]) {
                     else if (event.type == SDL_KEYDOWN) {
                         switch (event.key.keysym.sym) {
                         case SDLK_c: gamestatus = 0; quit2 = true; break;
-                        case SDLK_ESCAPE:play_exit_animation(renderer); quit = true; break;
+                        case SDLK_ESCAPE: quit = true; break;
                         case SDLK_w: if (shooting1P_rect.y > 300) shooting1P_rect.y -= 100; SDL_RenderClear(renderer); break;
                         case SDLK_s: if (shooting1P_rect.y < 676) shooting1P_rect.y += 100; SDL_RenderClear(renderer); break;
                         case SDLK_a: if (shooting1P_rect.x > 300) shooting1P_rect.x -= 100; SDL_RenderClear(renderer); break;
@@ -637,10 +634,10 @@ int main(int argc, char* argv[]) {
 
                 if (Debug && currenttime - Debug_time > 500)
                 {
-                    std::cout << "[DEBUG]>>Gametime:" << SDL_GetTicks() << endl;
-                    std::cout << "[DEBUG]>>FPS:" << lastFpsCount << endl;
-                    std::cout << "[DEBUG]>>RAM Usage:" << GetMemoryUsage() << " MB" << endl;
-                    std::cout << "[DEBUG]>>This message will be displayed again in 500ms\n\n";
+					consoleout("[DEBUG]>>Gametime:" + to_string(SDL_GetTicks()) + "\n");
+                    consoleout("[DEBUG]>>FPS:" + to_string(lastFpsCount) + "\n");
+                    consoleout("[DEBUG]>>RAM Usage:" + to_string(GetMemoryUsage()) + " MB" + "\n");
+                    consoleout("[DEBUG]>>This message will be displayed again in 500ms\n\n");
                     Debug_time = currenttime;
 
 
@@ -661,7 +658,7 @@ int main(int argc, char* argv[]) {
      }
     }
     play_exit_animation(renderer);
-	std::cout << "[SYSTEM]>>Exited Game Loop. Starting cleanup at:"<<get_current_time_string()<<endl;
+	consoleout("[SYSTEM]>>Exited Game Loop. Starting cleanup at:" + get_current_time_string()+"\n");
     cleanuptime = SDL_GetTicks();
     // Clean Up Resources
     SDL_DestroyTexture(backround_texture);
@@ -689,8 +686,7 @@ int main(int argc, char* argv[]) {
     SDL_Quit();
     currenttime = SDL_GetTicks();
 
-    std::cout << "[SYSTEM]>>Cleanup finished at:" << get_current_time_string() << endl; 
-	std::cout << "[SYSTEM]>>Shutting down. Bye Bye!\n";
-    Log("Program ended properly");
+    consoleout("[SYSTEM]>>Cleanup finished at:" + get_current_time_string() + "\n");
+    consoleout("[SYSTEM]>>Shutting down. Bye Bye!\n");
     return 0;
 }
