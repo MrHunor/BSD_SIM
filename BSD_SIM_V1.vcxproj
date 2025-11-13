@@ -143,6 +143,7 @@
     <ClCompile Include="header.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="class_def.h" />
     <ClInclude Include="Header.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
