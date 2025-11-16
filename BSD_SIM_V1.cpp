@@ -211,6 +211,12 @@ int main(int argc, char* argv[]) {
 					consoleout("[CONSOLE]>>Gamestatus set to:" + to_string(gamestatus) + "\n");
 					consoleout("[CONSOLE]>>");
 				}
+				else if (command == "dialogue")
+				{
+					cin >> placeholder;
+					show_dialogue(renderer, placeholder, player_resting_1_texture, &dazai.rect);
+					consoleout("[CONSOLE]>>");
+				}
 				else {
 					consoleout("[CONSOLE]>>Command not found\n");
 					consoleout("[CONSOLE]>>");

@@ -16,6 +16,24 @@
 using namespace std;
 namespace fs = std::filesystem;
 
+
+
+void show_dialogue(SDL_Renderer* renderer, string text, SDL_Texture* character, SDL_Rect* charaterRect_)
+{
+	SDL_Rect characterRect = *charaterRect_;
+	characterRect.w = characterRect.w * 3;
+	characterRect.h= characterRect.h * 3;
+	characterRect.x = 50;
+	characterRect.y = 800;
+	SDL_RenderCopy(renderer, character, NULL, &characterRect);
+	SDL_RenderPresent(renderer);
+	SDL_Delay(50000);
+}
+
+
+
+
+
 float GetMemoryUsage() {
 	PROCESS_MEMORY_COUNTERS_EX pmc;
 	if (GetProcessMemoryInfo(GetCurrentProcess(), (PROCESS_MEMORY_COUNTERS*)&pmc, sizeof(pmc))) {
