@@ -34,7 +34,7 @@ TODO:
 #include <SDL_image.h>
 #include <Windows.h>
 #include <conio.h>
-
+#include <SDL_ttf.h>
 #include <iostream>
 
 #include "Header.h"
@@ -81,10 +81,10 @@ int main(int argc, char* argv[]) {
 		consoleout("[SYSTEM]>>SDL Initialization Error: " + string(SDL_GetError()) + "\n");
 		return 1;
 	}
-
+	TTF_Init();
 	// Create Window and Renderer
 	SDL_Window* window = SDL_CreateWindow("SDL2 Displaying Image", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 1000, 1000, 0);
-	SDL_Renderer* renderer = SDL_CreateRenderer(window, -1, 0);
+	SDL_Renderer* renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
 
 	// Create Textures from Surfaces
 	SDL_Texture* backround_texture = IMG_LoadTexture(renderer, "backround.png");
@@ -108,7 +108,7 @@ int main(int argc, char* argv[]) {
 	SDL_Texture* chuuya_fighting_left_3_texture = IMG_LoadTexture(renderer, "chuuya_fighting_left_3.png");
 	SDL_Texture* shooting1P_1_texture = IMG_LoadTexture(renderer, "Shooting1P_1.png");
 	SDL_Texture* shooting1P_2_texture = IMG_LoadTexture(renderer, "Shooting1P_2.png");
-
+	SDL_Texture* dialogue_window = IMG_LoadTexture(renderer, "dialogue_window.png");
 	// Check if textures created successfully
 	if (!backround_texture || !player_resting_1_texture || !player_resting_2_texture || !player_walking_1_texture || !player_walking_2_texture || !chuuya_resting_texture || !chuuya_aggressiv_texture || !player_fighting_right_1_texture || !player_fighting_right_2_texture || !player_fighting_right_3_texture || !player_fighting_left_1_texture || !player_fighting_left_2_texture || !player_fighting_left_3_texture || !chuuya_fighting_right_1_texture || !chuuya_fighting_right_2_texture || !chuuya_fighting_right_3_texture || !chuuya_fighting_left_1_texture || !chuuya_fighting_left_2_texture || !chuuya_fighting_left_3_texture || !shooting1P_1_texture || !shooting1P_2_texture) {
 		consoleout("[SYSTEM]>>Texture Creation Error: " + string(SDL_GetError()));
@@ -128,7 +128,9 @@ int main(int argc, char* argv[]) {
 	SDL_QueryTexture(chuuya_resting_texture, NULL, NULL, &textureW, &textureH);
 	chuuya.rect = { 800, 800, textureW, textureH };
 	SDL_QueryTexture(shooting1P_1_texture, NULL, NULL, &textureW, &textureH);
-	SDL_Rect shooting1P_rect = { 620, 676, textureW, textureH };  // no need for a rect for the 2 frame because the dimesions are the same for both frames
+	SDL_Rect shooting1P_rect = { 620, 676, textureW, textureH }; // no need for a rect for the 2 frame because the dimesions are the same for both frames
+	SDL_QueryTexture(dialogue_window, NULL, NULL, &textureW, &textureH);
+	SDL_Rect dialogue_window_rect = { 250, 820, textureW, textureH };
 
 	SDL_Point chuuyaRestingCenter = { chuuya.rect.w / 2, chuuya.rect.h / 2 };
 	SDL_Point playerRestingCenter = { dazai.rect.w / 2, dazai.rect.h / 2 };
@@ -189,7 +191,13 @@ int main(int argc, char* argv[]) {
 				}
 				else if (command == "fps") {
 					consoleout("[CONSOLE]>>Current FPS Limit=" + to_string(fpsLimit) + "\n[CONSOLE]>>Enter new FPS limit value(int) :");
-					cin >> fpsLimit;
+					cin >> placeholder;
+					if (stoi(placeholder) > GetWindowRefreshRate(window))
+					{
+						fpsLimit = GetWindowRefreshRate(window);
+						consoleout("[CONSOLE]>>Your monitor's refresh rate is:" + to_string(GetWindowRefreshRate(window)) + ". Setting fps to your monitors refresh rate.\n");
+					}
+					else fpsLimit = stoi(placeholder);
 					consoleout("\n[CONSOLE]>>FPS limit set to:" + to_string(fpsLimit) + "\n");
 					consoleout("[CONSOLE]>>");
 				}
@@ -214,7 +222,7 @@ int main(int argc, char* argv[]) {
 				else if (command == "dialogue")
 				{
 					cin >> placeholder;
-					show_dialogue(renderer, placeholder, player_resting_1_texture, &dazai.rect);
+					if (show_dialogue(renderer, placeholder, player_resting_1_texture, &dazai.rect, dialogue_window, &dialogue_window_rect) == -1) consoleout("[CONSOLE]>>ERROR:Text too long");
 					consoleout("[CONSOLE]>>");
 				}
 				else {
@@ -222,7 +230,7 @@ int main(int argc, char* argv[]) {
 					consoleout("[CONSOLE]>>");
 				}
 			}
-
+			break;
 		case 1:
 			if (currenttime - fpsLimitTimer > (1000 / fpsLimit)) {
 				fpsLimitTimer = currenttime;
@@ -484,13 +492,19 @@ int main(int argc, char* argv[]) {
 					consoleout("[DEBUG]>>Distance between dazai and chuuya:" + to_string(Get_distance_between_rects(dazai.rect, chuuya.rect)) + "\n");
 					consoleout("[DEBUG]>>dazai.abilitymeter:" + to_string(dazai.ability) + "\n");
 					consoleout("[DEBUG]>>chuuya.abilitymeter:" + to_string(chuuya.ability) + "\n");
+					consoleout("[DEBUG]>>Current CPU Usage:" + to_string(GetCPULoad()) + "%\n");
 					consoleout("[DEBUG]>>This message will be displayed again in 500ms\n\n");
+
 					Debug_time = currenttime;
 				}
 
 				// Present Renderer
 				SDL_RenderPresent(renderer);
 				fpsCounter++;
+			}
+			else
+			{
+				SDL_Delay(1000 / fpsLimit);
 			}
 			break;
 
@@ -561,12 +575,17 @@ int main(int argc, char* argv[]) {
 						consoleout("[DEBUG]>>Gametime:" + to_string(SDL_GetTicks()) + "\n");
 						consoleout("[DEBUG]>>FPS:" + to_string(lastFpsCount) + "\n");
 						consoleout("[DEBUG]>>RAM Usage:" + to_string(GetMemoryUsage()) + " MB" + "\n");
+						consoleout("[DEBUG]>>Current CPU Usage:" + to_string(GetCPULoad()) + "%\n");
 						consoleout("[DEBUG]>>This message will be displayed again in 500ms\n\n");
 						Debug_time = currenttime;
 					}
 
 					SDL_RenderPresent(renderer);
 					fpsCounter++;
+				}
+				else
+				{
+					SDL_Delay(1000 / fpsLimit);
 				}
 			}
 

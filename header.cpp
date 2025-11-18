@@ -4,7 +4,8 @@
 #include <SDL_ttf.h>
 #include <windows.h>
 #include <Psapi.h>
-
+#include <Pdh.h>
+#include <PdhMsg.h>
 #include <chrono>
 #include <filesystem>
 #include <fstream>
@@ -13,26 +14,79 @@
 #include <random>
 #include <sstream>
 #include <string>
+#pragma comment(lib, "pdh.lib")
 using namespace std;
 namespace fs = std::filesystem;
 
+int GetWindowRefreshRate(SDL_Window* window) {
+	int displayIndex = SDL_GetWindowDisplayIndex(window);
+	if (displayIndex < 0) return 0;
 
+	SDL_DisplayMode mode;
+	if (SDL_GetCurrentDisplayMode(displayIndex, &mode) != 0)
+		return 0;
 
-void show_dialogue(SDL_Renderer* renderer, string text, SDL_Texture* character, SDL_Rect* charaterRect_)
+	return mode.refresh_rate;  // in Hz
+}
+
+double GetCPULoad()
+{
+	FILETIME idleTime, kernelTime, userTime;
+	GetSystemTimes(&idleTime, &kernelTime, &userTime);
+
+	static ULONGLONG prevIdle = 0, prevKernel = 0, prevUser = 0;
+
+	ULONGLONG idle = (((ULONGLONG)idleTime.dwHighDateTime) << 32) | idleTime.dwLowDateTime;
+	ULONGLONG kernel = (((ULONGLONG)kernelTime.dwHighDateTime) << 32) | kernelTime.dwLowDateTime;
+	ULONGLONG user = (((ULONGLONG)userTime.dwHighDateTime) << 32) | userTime.dwLowDateTime;
+
+	ULONGLONG idleDiff = idle - prevIdle;
+	ULONGLONG kernelDiff = kernel - prevKernel;
+	ULONGLONG userDiff = user - prevUser;
+
+	prevIdle = idle;
+	prevKernel = kernel;
+	prevUser = user;
+
+	ULONGLONG total = kernelDiff + userDiff;
+	if (total == 0) return 0.0;
+
+	return (1.0 - (idleDiff / (double)total)) * 100.0;
+}
+
+int show_dialogue(SDL_Renderer* renderer, string text, SDL_Texture* character, SDL_Rect* charaterRect_, SDL_Texture* dialogue_window, SDL_Rect* dialogue_rect)
 {
 	SDL_Rect characterRect = *charaterRect_;
 	characterRect.w = characterRect.w * 3;
-	characterRect.h= characterRect.h * 3;
+	characterRect.h = characterRect.h * 3;
 	characterRect.x = 50;
 	characterRect.y = 800;
 	SDL_RenderCopy(renderer, character, NULL, &characterRect);
+	SDL_RenderCopy(renderer, dialogue_window, NULL, dialogue_rect);
+
+	TTF_Font* Font = TTF_OpenFont("font.TTF", 30);
+	SDL_Color color = { 0, 0, 0 };
+	SDL_Surface* text_surface = TTF_RenderText_Blended_Wrapped(Font, text.c_str(), color, 580);
+	SDL_Texture* text_texture = SDL_CreateTextureFromSurface(renderer, text_surface);
+	SDL_Rect text_rect;
+	text_rect.x = 260;
+	text_rect.y = 830;
+	text_rect.w = text_surface->w;
+	text_rect.h = text_surface->h;
+	if (text_surface->h > 150)//text exceedes max text limit
+	{
+		return -1;
+	}
+
+	SDL_RenderCopy(renderer, text_texture, 0, &text_rect);
+	SDL_RenderCopy(renderer, text_texture, NULL, &text_rect);
+	SDL_RenderPresent(renderer);
+	SDL_Delay(1000);
+
 	SDL_RenderPresent(renderer);
 	SDL_Delay(50000);
+	return 0;
 }
-
-
-
-
 
 float GetMemoryUsage() {
 	PROCESS_MEMORY_COUNTERS_EX pmc;
@@ -94,13 +148,13 @@ string read_file_to_string(string file_path) {
 
 	if (!filehandler.is_open()) {
 		cout << "Error opening file" << endl;
-		return NULL;
+		return "";
 	}
 	filehandler >> filestring;
 	filehandler.close();
 	if (filehandler.is_open()) {
 		cout << "Error closing file" << endl;
-		return NULL;
+		return "";
 	}
 
 	return filestring;
@@ -293,7 +347,6 @@ void play_exit_animation(SDL_Renderer* renderer) {
 		SDL_Delay(1);
 		SDL_RenderPresent(renderer);
 	}
-	TTF_Init();
 	TTF_Font* Font = TTF_OpenFont("Impact.TTF", 300);
 	TTF_Font* Font2 = TTF_OpenFont("Impact2.TTF", 40);
 	SDL_Color color = { 255, 0, 0 };
