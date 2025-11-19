@@ -7,11 +7,16 @@ public:
 	SDL_Rect rect;
 	int health;
 	int ability;
-	int fighting_frame;
-	int walking_frame;
-	int resting_frame;
+	int fightingFrame;
+	int walkingFrame;
+	int restingFrame;
 	bool hit;
 	bool fighting;
 	bool aggressiv;
 	bool walking;
+	Uint32 LastFrameSwitchResting;
+	Uint32 LastFrameSwitchWalking;
+	Uint32 LastFrameSwitchFighting;
+	Uint32 walkingCooldown; //used for chuuyas pathfiniding
+	Uint32 fightingCooldown;
 };

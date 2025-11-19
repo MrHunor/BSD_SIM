@@ -14,9 +14,14 @@
 #include <random>
 #include <sstream>
 #include <string>
+#include <mutex>
 #pragma comment(lib, "pdh.lib")
 using namespace std;
 namespace fs = std::filesystem;
+
+// Add a single shared ofstream and mutex for efficient logging
+static std::ofstream g_logFile;
+static std::mutex g_logMutex;
 
 int GetWindowRefreshRate(SDL_Window* window) {
 	int displayIndex = SDL_GetWindowDisplayIndex(window);
@@ -229,14 +234,30 @@ string get_current_time_string() {
 	return ss.str();
 }
 
+// Efficient Log implementation: open the file once and reuse the handle
 void Log(const string& message) {
-	ofstream logFile("latest.log", ios_base::app);
-	logFile << get_current_clock_string() << ":" << message;
-	logFile.close();
+	std::lock_guard<std::mutex> lk(g_logMutex);
+	if (!g_logFile.is_open()) {
+		// Open lazily; creating file if it doesn't exist.
+		g_logFile.open("latest.log", ios_base::app);
+	}
+	if (g_logFile.is_open()) {
+		g_logFile << get_current_clock_string() << ":" << message;
+		// keep buffered; don't flush every call to reduce overhead
+	}
+}
+
+void CloseLog() {
+	std::lock_guard<std::mutex> lk(g_logMutex);
+	if (g_logFile.is_open()) {
+		g_logFile.flush();
+		g_logFile.close();
+	}
 }
 
 void consoleout(string message) {
 	cout << message;
+	// Keep Log but it is now lightweight (reuses file handle)
 	Log("(via consoleout)" + message);
 }
 

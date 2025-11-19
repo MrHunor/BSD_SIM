@@ -4,6 +4,7 @@
 using namespace std;
 
 extern void Log(const string& message);
+extern void CloseLog();
 extern bool Is_within_range(const SDL_Rect& rect1, const SDL_Rect& rect2, int range);
 extern void play_exit_animation(SDL_Renderer* renderer);
 extern void CreateLog();

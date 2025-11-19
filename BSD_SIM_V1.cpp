@@ -17,6 +17,8 @@ Changes Made [Date/Time/Summary of Changes Made]:
 |->08-11-2025/21:41/Converted std::cout to consoleout
 |->08-11-2025/22:02/converted all bmp to png to save space and have transparency (load via IMG_loadtexture)
 |->13-11-2025/20:11/Cleaned up and Optimesed by some variables to classes (Character class in class_def.h)
+|->18-11-2025/23:45/Added dialogue function and huge optimisation
+|->19-11-2025/15:45/Copilot Log optimisation &moved more varibles to character class
 TODO:
 |->Buxfixes needed: Give Abilitybar final tweaks; also make it acutally useful aka add ability bar for chuuya and give him a ability for dazai  to nullifiy
 |->Move all the .bmp texture files to a seperate folder to clear up the main folder. (looks horrible in git)
@@ -33,7 +35,6 @@ TODO:
 #include <SDL.h>
 #include <SDL_image.h>
 #include <Windows.h>
-#include <conio.h>
 #include <SDL_ttf.h>
 #include <iostream>
 
@@ -42,22 +43,28 @@ TODO:
 using namespace std;
 
 // Global Variables
-bool quit = false;
-bool hit_took = false;
-bool quit2 = false;
-bool console = false;
-bool Debug = false;
-int gamestatus = 0;
-int textureW = 0;
-int textureH = 0;
-int fpsCounter = 0;
-int lastFpsCount = 0;
-int fpsLimit = 30;
-string placeholder;
-string command;
-Uint32 currenttime;
 
 int main(int argc, char* argv[]) {
+	bool quit = false;
+	bool hit_took = false;
+	bool quit2 = false;
+	bool console = false;
+	bool Debug = false;
+	int gamestatus = 0;
+	int textureW = 0;
+	int textureH = 0;
+	int fpsCounter = 0;
+	int lastFpsCount = 0;
+	int fpsLimit = 30;
+	string placeholder;
+	string command;
+	Uint32 currenttime;
+	Character dazai = {};
+	Character chuuya = {};
+	dazai.health = 100;
+	chuuya.health = 150;
+	SDL_Event event;
+
 	// Startup
 	HWND consoleWindow = GetConsoleWindow();
 	CreateLog();
@@ -84,41 +91,36 @@ int main(int argc, char* argv[]) {
 	TTF_Init();
 	// Create Window and Renderer
 	SDL_Window* window = SDL_CreateWindow("SDL2 Displaying Image", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 1000, 1000, 0);
-	SDL_Renderer* renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
+	SDL_Renderer* renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
 
 	// Create Textures from Surfaces
-	SDL_Texture* backround_texture = IMG_LoadTexture(renderer, "backround.png");
-	SDL_Texture* player_resting_1_texture = IMG_LoadTexture(renderer, "dazai_resting_1.png");
-	SDL_Texture* player_resting_2_texture = IMG_LoadTexture(renderer, "dazai_resting_2.png");
-	SDL_Texture* player_walking_1_texture = IMG_LoadTexture(renderer, "dazai_walking_1.png");
-	SDL_Texture* player_walking_2_texture = IMG_LoadTexture(renderer, "dazai_walking_2.png");
-	SDL_Texture* chuuya_resting_texture = IMG_LoadTexture(renderer, "chuuya_resting.png");
-	SDL_Texture* chuuya_aggressiv_texture = IMG_LoadTexture(renderer, "chuuya_aggressiv.png");
-	SDL_Texture* player_fighting_right_1_texture = IMG_LoadTexture(renderer, "dazai_fighting_right_1.png");
-	SDL_Texture* player_fighting_right_2_texture = IMG_LoadTexture(renderer, "dazai_fighting_right_2.png");
-	SDL_Texture* player_fighting_right_3_texture = IMG_LoadTexture(renderer, "dazai_fighting_right_3.png");
-	SDL_Texture* player_fighting_left_1_texture = IMG_LoadTexture(renderer, "dazai_fighting_left_1.png");
-	SDL_Texture* player_fighting_left_2_texture = IMG_LoadTexture(renderer, "dazai_fighting_left_2.png");
-	SDL_Texture* player_fighting_left_3_texture = IMG_LoadTexture(renderer, "dazai_fighting_left_3.png");
-	SDL_Texture* chuuya_fighting_right_1_texture = IMG_LoadTexture(renderer, "chuuya_fighting_right_1.png");
-	SDL_Texture* chuuya_fighting_right_2_texture = IMG_LoadTexture(renderer, "chuuya_fighting_right_2.png");
-	SDL_Texture* chuuya_fighting_right_3_texture = IMG_LoadTexture(renderer, "chuuya_fighting_right_3.png");
-	SDL_Texture* chuuya_fighting_left_1_texture = IMG_LoadTexture(renderer, "chuuya_fighting_left_1.png");
-	SDL_Texture* chuuya_fighting_left_2_texture = IMG_LoadTexture(renderer, "chuuya_fighting_left_2.png");
-	SDL_Texture* chuuya_fighting_left_3_texture = IMG_LoadTexture(renderer, "chuuya_fighting_left_3.png");
-	SDL_Texture* shooting1P_1_texture = IMG_LoadTexture(renderer, "Shooting1P_1.png");
-	SDL_Texture* shooting1P_2_texture = IMG_LoadTexture(renderer, "Shooting1P_2.png");
-	SDL_Texture* dialogue_window = IMG_LoadTexture(renderer, "dialogue_window.png");
+	SDL_Texture* backround_texture = IMG_LoadTexture(renderer, "assets\\backround.png");
+	SDL_Texture* player_resting_1_texture = IMG_LoadTexture(renderer, "assets\\dazai_resting_1.png");
+	SDL_Texture* player_resting_2_texture = IMG_LoadTexture(renderer, "assets\\dazai_resting_2.png");
+	SDL_Texture* player_walking_1_texture = IMG_LoadTexture(renderer, "assets\\dazai_walking_1.png");
+	SDL_Texture* player_walking_2_texture = IMG_LoadTexture(renderer, "assets\\dazai_walking_2.png");
+	SDL_Texture* chuuya_resting_texture = IMG_LoadTexture(renderer, "assets\\chuuya_resting.png");
+	SDL_Texture* chuuya_aggressiv_texture = IMG_LoadTexture(renderer, "assets\\chuuya_aggressiv.png");
+	SDL_Texture* player_fighting_right_1_texture = IMG_LoadTexture(renderer, "assets\\dazai_fighting_right_1.png");
+	SDL_Texture* player_fighting_right_2_texture = IMG_LoadTexture(renderer, "assets\\dazai_fighting_right_2.png");
+	SDL_Texture* player_fighting_right_3_texture = IMG_LoadTexture(renderer, "assets\\dazai_fighting_right_3.png");
+	SDL_Texture* player_fighting_left_1_texture = IMG_LoadTexture(renderer, "assets\\dazai_fighting_left_1.png");
+	SDL_Texture* player_fighting_left_2_texture = IMG_LoadTexture(renderer, "assets\\dazai_fighting_left_2.png");
+	SDL_Texture* player_fighting_left_3_texture = IMG_LoadTexture(renderer, "assets\\dazai_fighting_left_3.png");
+	SDL_Texture* chuuya_fighting_right_1_texture = IMG_LoadTexture(renderer, "assets\\chuuya_fighting_right_1.png");
+	SDL_Texture* chuuya_fighting_right_2_texture = IMG_LoadTexture(renderer, "assets\\chuuya_fighting_right_2.png");
+	SDL_Texture* chuuya_fighting_right_3_texture = IMG_LoadTexture(renderer, "assets\\chuuya_fighting_right_3.png");
+	SDL_Texture* chuuya_fighting_left_1_texture = IMG_LoadTexture(renderer, "assets\\chuuya_fighting_left_1.png");
+	SDL_Texture* chuuya_fighting_left_2_texture = IMG_LoadTexture(renderer, "assets\\chuuya_fighting_left_2.png");
+	SDL_Texture* chuuya_fighting_left_3_texture = IMG_LoadTexture(renderer, "assets\\chuuya_fighting_left_3.png");
+	SDL_Texture* shooting1P_1_texture = IMG_LoadTexture(renderer, "assets\\Shooting1P_1.png");
+	SDL_Texture* shooting1P_2_texture = IMG_LoadTexture(renderer, "assets\\Shooting1P_2.png");
+	SDL_Texture* dialogue_window = IMG_LoadTexture(renderer, "assets\\dialogue_window.png");
 	// Check if textures created successfully
 	if (!backround_texture || !player_resting_1_texture || !player_resting_2_texture || !player_walking_1_texture || !player_walking_2_texture || !chuuya_resting_texture || !chuuya_aggressiv_texture || !player_fighting_right_1_texture || !player_fighting_right_2_texture || !player_fighting_right_3_texture || !player_fighting_left_1_texture || !player_fighting_left_2_texture || !player_fighting_left_3_texture || !chuuya_fighting_right_1_texture || !chuuya_fighting_right_2_texture || !chuuya_fighting_right_3_texture || !chuuya_fighting_left_1_texture || !chuuya_fighting_left_2_texture || !chuuya_fighting_left_3_texture || !shooting1P_1_texture || !shooting1P_2_texture) {
 		consoleout("[SYSTEM]>>Texture Creation Error: " + string(SDL_GetError()));
 		return 1;
 	}
-
-	Character dazai = {};
-	Character chuuya = {};
-	dazai.health = 100;
-	chuuya.health = 150;
 
 	// Defining rects
 	SDL_QueryTexture(backround_texture, NULL, NULL, &textureW, &textureH);
@@ -136,22 +138,20 @@ int main(int argc, char* argv[]) {
 	SDL_Point playerRestingCenter = { dazai.rect.w / 2, dazai.rect.h / 2 };
 
 	// Timing Variables
-	Uint32 LastFrameSwitch_resting = SDL_GetTicks();
-	Uint32 LastFrameSwitch_walking = SDL_GetTicks();
-	Uint32 Chuuya_walking_time = SDL_GetTicks();
-	Uint32 Chuuya_fighting_time = SDL_GetTicks();
-	Uint32 Chuuya_fighting_cooldown = SDL_GetTicks();
-	Uint32 fighting_time = SDL_GetTicks();
-	Uint32 fighting_cooldown_time = SDL_GetTicks();
+	dazai.LastFrameSwitchResting = SDL_GetTicks();
+	dazai.LastFrameSwitchWalking = SDL_GetTicks();
+	chuuya.walkingCooldown = SDL_GetTicks();
+	chuuya.LastFrameSwitchFighting = SDL_GetTicks();
+	chuuya.fightingCooldown = SDL_GetTicks();
+	dazai.LastFrameSwitchFighting = SDL_GetTicks();
 	Uint32 Debug_time = SDL_GetTicks();
 	Uint32 cleanuptime = SDL_GetTicks();
 	Uint32 abilitlycountdown = SDL_GetTicks();
 	Uint32 shootingcooldown = SDL_GetTicks();
 	Uint32 fpsCounterTimer = SDL_GetTicks();
 	Uint32 fpsLimitTimer = SDL_GetTicks();
-	// Event Handling
-	SDL_Event event;
 	currenttime = SDL_GetTicks();
+
 	consoleout("[SYSTEM]>>Startup finished after:" + to_string(currenttime - general_time) + "ms  at:" + get_current_time_string() + "\n");
 	if (!Debug) Intro(renderer);
 	consoleout("[SYSTEM]>>Program loop started\n");
@@ -246,34 +246,34 @@ int main(int argc, char* argv[]) {
 							if (dazai.rect.y > 10) {
 								dazai.walking = true;
 								dazai.rect.y -= 10;
-								Log("dazai coordinates changed to:" + to_string(dazai.rect.x) + "," + to_string(dazai.rect.y));
+								consoleout("dazai coordinates changed to:" + to_string(dazai.rect.x) + "," + to_string(dazai.rect.y));
 							}
 							break;
 						case SDLK_s:
 							if (dazai.rect.y < 950) {
 								dazai.walking = true;
 								dazai.rect.y += 10;
-								Log("dazai coordinates changed to:" + to_string(dazai.rect.x) + "," + to_string(dazai.rect.y));
+								consoleout("dazai coordinates changed to:" + to_string(dazai.rect.x) + "," + to_string(dazai.rect.y));
 							}
 							break;
 						case SDLK_a:
 							if (dazai.rect.x > 10) {
 								dazai.walking = true;
 								dazai.rect.x -= 10;
-								Log("dazai coordinates changed to:" + to_string(dazai.rect.x) + "," + to_string(dazai.rect.y));
+								consoleout("dazai coordinates changed to:" + to_string(dazai.rect.x) + "," + to_string(dazai.rect.y));
 							}
 							break;
 						case SDLK_d:
 							if (dazai.rect.x < 900) {
 								dazai.walking = true;
 								dazai.rect.x += 10;
-								Log("dazai coordinates changed to:" + to_string(dazai.rect.x) + "," + to_string(dazai.rect.y));
+								consoleout("dazai coordinates changed to:" + to_string(dazai.rect.x) + "," + to_string(dazai.rect.y));
 							}
 							break;
 						case SDLK_e:
 							if (!dazai.fighting) {
 								dazai.fighting = true;
-								fighting_time = SDL_GetTicks();
+								dazai.LastFrameSwitchFighting = SDL_GetTicks();
 								hit_took = false;
 							}
 							break;
@@ -292,48 +292,48 @@ int main(int argc, char* argv[]) {
 				SDL_RenderCopy(renderer, backround_texture, 0, &backround_rect);
 
 				// Update Frame States
-				if (currenttime - LastFrameSwitch_resting > 400) {
-					if (dazai.resting_frame == 1) dazai.walking_frame = 2;
-					else dazai.resting_frame = 1;
-					LastFrameSwitch_resting = currenttime;
+				if (currenttime - dazai.LastFrameSwitchResting > 400) {
+					if (dazai.restingFrame == 1) dazai.walkingFrame = 2;
+					else dazai.restingFrame = 1;
+					dazai.LastFrameSwitchResting = currenttime;
 				}
-				if (currenttime - LastFrameSwitch_walking > 200 && dazai.walking) {
-					if (dazai.walking_frame == 1) dazai.walking_frame = 2;
-					else dazai.walking_frame = 1;
-					LastFrameSwitch_walking = currenttime;
+				if (currenttime - dazai.LastFrameSwitchWalking > 200 && dazai.walking) {
+					if (dazai.walkingFrame == 1) dazai.walkingFrame = 2;
+					else dazai.walkingFrame = 1;
+					dazai.LastFrameSwitchWalking = currenttime;
 				}
-				if (dazai.fighting && currenttime - fighting_time > 200) {
-					dazai.fighting_frame++;
-					fighting_time = currenttime;
-					if (dazai.fighting_frame > 3) {
+				if (dazai.fighting && currenttime - dazai.LastFrameSwitchFighting > 200) {
+					dazai.fightingFrame++;
+					dazai.LastFrameSwitchFighting = currenttime;
+					if (dazai.fightingFrame > 3) {
 						dazai.fighting = false;
-						dazai.fighting_frame = 1;
+						dazai.fightingFrame = 1;
 					}
 				}
-				if (chuuya.fighting && currenttime - Chuuya_fighting_time > 200) {
-					chuuya.fighting_frame++;
-					Chuuya_fighting_time = currenttime;
-					if (chuuya.fighting_frame > 3) {
-						chuuya.fighting_frame = 1;
+				if (chuuya.fighting && currenttime - chuuya.LastFrameSwitchFighting > 200) {
+					chuuya.fightingFrame++;
+					chuuya.LastFrameSwitchFighting = currenttime;
+					if (chuuya.fightingFrame > 3) {
+						chuuya.fightingFrame = 1;
 					}
 				}
 
 				// Render Player
 				if (dazai.walking) {
-					if (dazai.walking_frame == 1)
+					if (dazai.walkingFrame == 1)
 						SDL_RenderCopy(renderer, player_walking_1_texture, NULL, &dazai.rect);
 					else
 						SDL_RenderCopy(renderer, player_walking_2_texture, NULL, &dazai.rect);
 				}
 				else if (!dazai.fighting) {
-					if (dazai.fighting_frame == 1)
+					if (dazai.fightingFrame == 1)
 						SDL_RenderCopy(renderer, player_resting_1_texture, NULL, &dazai.rect);
 					else
 						SDL_RenderCopy(renderer, player_resting_2_texture, NULL, &dazai.rect);
 				}
 				else {
 					if (chuuya.rect.x > dazai.rect.x) {
-						switch (dazai.fighting_frame) {
+						switch (dazai.fightingFrame) {
 						case 1:
 							SDL_RenderCopy(renderer, player_fighting_right_1_texture, NULL, &dazai.rect);
 							break;
@@ -346,7 +346,7 @@ int main(int argc, char* argv[]) {
 						}
 					}
 					else {
-						switch (dazai.fighting_frame) {
+						switch (dazai.fightingFrame) {
 						case 1:
 							SDL_RenderCopy(renderer, player_fighting_left_1_texture, NULL, &dazai.rect);
 							break;
@@ -385,7 +385,7 @@ int main(int argc, char* argv[]) {
 					}
 					else {
 						if (dazai.rect.x > chuuya.rect.x) {
-							switch (chuuya.fighting_frame) {
+							switch (chuuya.fightingFrame) {
 							case 1:
 								SDL_RenderCopy(renderer, chuuya_fighting_right_1_texture, NULL, &chuuya.rect);
 								break;
@@ -398,7 +398,7 @@ int main(int argc, char* argv[]) {
 							}
 						}
 						else {
-							switch (chuuya.fighting_frame) {
+							switch (chuuya.fightingFrame) {
 							case 1:
 								SDL_RenderCopy(renderer, chuuya_fighting_left_1_texture, NULL, &chuuya.rect);
 								break;
@@ -436,13 +436,13 @@ int main(int argc, char* argv[]) {
 						chuuya.fighting = false;
 					}
 
-					if (chuuya.fighting && currenttime - Chuuya_fighting_cooldown > 500) {
+					if (chuuya.fighting && currenttime - chuuya.fightingCooldown > 500) {
 						dazai.health -= 10;
 						consoleout("[GAME]>>Player: 'dazai ' took a hit!\n");
-						Chuuya_fighting_cooldown = currenttime;
+						chuuya.fightingCooldown = currenttime;
 					}
 
-					if (chuuya.aggressiv && currenttime - Chuuya_walking_time > 200 && !Is_within_range(chuuya.rect, dazai.rect, 50)) {
+					if (chuuya.aggressiv && currenttime - chuuya.walkingCooldown > 200 && !Is_within_range(chuuya.rect, dazai.rect, 50)) {
 						if (chuuya.rect.x > dazai.rect.x)
 							chuuya.rect.x -= 10;
 						else if (chuuya.rect.x < dazai.rect.x)
@@ -452,7 +452,7 @@ int main(int argc, char* argv[]) {
 						else if (chuuya.rect.y < dazai.rect.y)
 							chuuya.rect.y += 10;
 
-						Chuuya_walking_time = currenttime;
+						chuuya.walkingCooldown = currenttime;
 					}
 
 					if (chuuya.ability > 110 && Is_within_range(dazai.rect, chuuya.rect, 50)) {
@@ -626,5 +626,8 @@ int main(int argc, char* argv[]) {
 
 	consoleout("[SYSTEM]>>Cleanup finished at:" + get_current_time_string() + "\n");
 	consoleout("[SYSTEM]>>Shutting down. Bye Bye!\n");
+
+	// Ensure log file is properly closed
+	CloseLog();
 	return 0;
 }
