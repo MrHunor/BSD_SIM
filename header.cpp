@@ -69,7 +69,7 @@ int show_dialogue(SDL_Renderer* renderer, string text, SDL_Texture* character, S
 	SDL_RenderCopy(renderer, character, NULL, &characterRect);
 	SDL_RenderCopy(renderer, dialogue_window, NULL, dialogue_rect);
 
-	TTF_Font* Font = TTF_OpenFont("font.TTF", 30);
+	TTF_Font* Font = TTF_OpenFont("assets\\font.TTF", 30);
 	SDL_Color color = { 0, 0, 0 };
 	SDL_Surface* text_surface = TTF_RenderText_Blended_Wrapped(Font, text.c_str(), color, 580);
 	SDL_Texture* text_texture = SDL_CreateTextureFromSurface(renderer, text_surface);
@@ -368,8 +368,8 @@ void play_exit_animation(SDL_Renderer* renderer) {
 		SDL_Delay(1);
 		SDL_RenderPresent(renderer);
 	}
-	TTF_Font* Font = TTF_OpenFont("Impact.TTF", 300);
-	TTF_Font* Font2 = TTF_OpenFont("Impact2.TTF", 40);
+	TTF_Font* Font = TTF_OpenFont("assets\\Impact.TTF", 300);
+	TTF_Font* Font2 = TTF_OpenFont("assets\\Impact2.TTF", 40);
 	SDL_Color color = { 255, 0, 0 };
 	SDL_Surface* text_surface = TTF_RenderText_Solid(Font, "EXIT!", color);
 	SDL_Surface* text_surface2 = TTF_RenderText_Solid(Font2, "Thank you for playing!", color);

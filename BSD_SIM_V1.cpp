@@ -29,7 +29,8 @@ TODO:
 |->Add exit crash animaton
 |->resize to 1024x1024 (PoT)
 |->ADD PROPER LOGGING AND DEBUG OUPUT FOR GODS SAKE
-|->Debug Info class &  move dazai/chuuya frame time switch to their respective classes
+|->Debug Info class 
+|->Create time put off letter apperace in the dialogue window. Acivable because the font is monospaced so you can theretically draw the hole text and then draw over each letter for the set suration (make duration parameter)
 ******************************************************************************************/
 
 #include <SDL.h>
