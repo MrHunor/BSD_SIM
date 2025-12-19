@@ -59,8 +59,9 @@ double GetCPULoad()
 	return (1.0 - (idleDiff / (double)total)) * 100.0;
 }
 
-int show_dialogue(SDL_Renderer* renderer, string text, SDL_Texture* character, SDL_Rect* charaterRect_, SDL_Texture* dialogue_window, SDL_Rect* dialogue_rect)
+int show_dialogue(SDL_Renderer* renderer, string text, unsigned int delay, SDL_Texture* character, SDL_Rect* charaterRect_, SDL_Texture* dialogue_window, SDL_Rect* dialogue_rect)
 {
+	if (text.size() > 52)return -1;//max length reached, failure
 	SDL_Rect characterRect = *charaterRect_;
 	characterRect.w = characterRect.w * 3;
 	characterRect.h = characterRect.h * 3;
@@ -68,28 +69,35 @@ int show_dialogue(SDL_Renderer* renderer, string text, SDL_Texture* character, S
 	characterRect.y = 800;
 	SDL_RenderCopy(renderer, character, NULL, &characterRect);
 	SDL_RenderCopy(renderer, dialogue_window, NULL, dialogue_rect);
-
+	SDL_Surface* text_surface;
+	SDL_Texture* text_texture;
+	SDL_Rect text_rect;
 	TTF_Font* Font = TTF_OpenFont("assets\\font.TTF", 30);
 	SDL_Color color = { 0, 0, 0 };
-	SDL_Surface* text_surface = TTF_RenderText_Blended_Wrapped(Font, text.c_str(), color, 580);
-	SDL_Texture* text_texture = SDL_CreateTextureFromSurface(renderer, text_surface);
-	SDL_Rect text_rect;
+	unsigned int line = 0;
 	text_rect.x = 260;
 	text_rect.y = 830;
-	text_rect.w = text_surface->w;
-	text_rect.h = text_surface->h;
-	if (text_surface->h > 150)//text exceedes max text limit
+	text_rect.w = 0;
+	for (int i = 0; i < text.size(); i++)
 	{
-		return -1;
+		string ch(1, text[i]);
+		text_rect.x = text_rect.x + text_rect.w;
+		text_surface = TTF_RenderText_Solid(Font, ch.c_str(), color);
+		text_texture = SDL_CreateTextureFromSurface(renderer, text_surface);
+		text_rect.w = text_surface->w;
+		text_rect.h = text_surface->h;
+		SDL_RenderCopy(renderer, text_texture, 0, &text_rect);
+		SDL_RenderPresent(renderer);
+		SDL_Delay(delay);
+		if (i % 18 == 0 && i != 0)
+		{
+			line++;
+			text_rect.y = text_rect.y + 35;
+			text_rect.x = 260-text_rect.w;
+		}
 	}
 
-	SDL_RenderCopy(renderer, text_texture, 0, &text_rect);
-	SDL_RenderCopy(renderer, text_texture, NULL, &text_rect);
-	SDL_RenderPresent(renderer);
-	SDL_Delay(1000);
 
-	SDL_RenderPresent(renderer);
-	SDL_Delay(50000);
 	return 0;
 }
 

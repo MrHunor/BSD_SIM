@@ -19,18 +19,19 @@ Changes Made [Date/Time/Summary of Changes Made]:
 |->13-11-2025/20:11/Cleaned up and Optimesed by some variables to classes (Character class in class_def.h)
 |->18-11-2025/23:45/Added dialogue function and huge optimisation
 |->19-11-2025/15:45/Copilot Log optimisation &moved more varibles to character class
+|->19-12-2025/22:45/Resized Window from 1000² to 1024² for better performance
+|->19-12-2025/23:30/Added Dialogue bar
 TODO:
-|->Buxfixes needed: Give Abilitybar final tweaks; also make it acutally useful aka add ability bar for chuuya and give him a ability for dazai  to nullifiy
-|->Move all the .bmp texture files to a seperate folder to clear up the main folder. (looks horrible in git)
-|->Create config (that can be written to using the ingame console menu) for things like other exit animations etc.
-|->Make chuuyas ability better, buff chuuya!
-|->HEALTH BAR IMPORTANT
-|->Create a GAME!->dazai  walking aroung, shooting first person at enemys etc..
-|->Add exit crash animaton
-|->resize to 1024x1024 (PoT)
-|->ADD PROPER LOGGING AND DEBUG OUPUT FOR GODS SAKE
-|->Debug Info class 
-|->Create time put off letter apperace in the dialogue window. Acivable because the font is monospaced so you can theretically draw the hole text and then draw over each letter for the set suration (make duration parameter)
+|->1Buxfixes needed: Give Abilitybar final tweaks; 
+|->3Create config (that can be written to using the ingame console menu) for things like other exit animations etc.
+|->4Make chuuyas ability better, buff chuuya!
+|->5HEALTH BAR IMPORTANT
+|->6Create a GAME!->dazai  walking aroung, shooting first person at enemys etc..
+|->7Add exit crash animaton
+|->8resize to 1024x1024 (PoT)
+|->9ADD PROPER LOGGING AND DEBUG OUPUT FOR GODS SAKE
+|->10Debug Info class 
+|->12Create Startups sceen with starup progress
 ******************************************************************************************/
 
 #include <SDL.h>
@@ -42,8 +43,6 @@ TODO:
 #include "Header.h"
 #include "class_def.h"
 using namespace std;
-
-// Global Variables
 
 int main(int argc, char* argv[]) {
 	bool quit = false;
@@ -91,7 +90,7 @@ int main(int argc, char* argv[]) {
 	}
 	TTF_Init();
 	// Create Window and Renderer
-	SDL_Window* window = SDL_CreateWindow("SDL2 Displaying Image", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 1000, 1000, 0);
+	SDL_Window* window = SDL_CreateWindow("SDL2 Displaying Image", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 1024, 1024, 0);
 	SDL_Renderer* renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
 
 	// Create Textures from Surfaces
@@ -223,7 +222,7 @@ int main(int argc, char* argv[]) {
 				else if (command == "dialogue")
 				{
 					cin >> placeholder;
-					if (show_dialogue(renderer, placeholder, player_resting_1_texture, &dazai.rect, dialogue_window, &dialogue_window_rect) == -1) consoleout("[CONSOLE]>>ERROR:Text too long");
+					if (show_dialogue(renderer, placeholder, 50, player_resting_1_texture, &dazai.rect, dialogue_window, &dialogue_window_rect) == -1) consoleout("[CONSOLE]>>ERROR:Text too long");
 					consoleout("[CONSOLE]>>");
 				}
 				else {
@@ -251,7 +250,7 @@ int main(int argc, char* argv[]) {
 							}
 							break;
 						case SDLK_s:
-							if (dazai.rect.y < 950) {
+							if (dazai.rect.y < 974) {
 								dazai.walking = true;
 								dazai.rect.y += 10;
 								consoleout("dazai coordinates changed to:" + to_string(dazai.rect.x) + "," + to_string(dazai.rect.y));
@@ -265,7 +264,7 @@ int main(int argc, char* argv[]) {
 							}
 							break;
 						case SDLK_d:
-							if (dazai.rect.x < 900) {
+							if (dazai.rect.x < 924) {
 								dazai.walking = true;
 								dazai.rect.x += 10;
 								consoleout("dazai coordinates changed to:" + to_string(dazai.rect.x) + "," + to_string(dazai.rect.y));

@@ -19,6 +19,6 @@ extern string read_file_to_string(string file_path);
 extern void Intro(SDL_Renderer* renderer);
 extern float GetMemoryUsage();
 extern string get_current_clock_string();
-extern int show_dialogue(SDL_Renderer* renderer, string text, SDL_Texture* character, SDL_Rect* charaterRect_, SDL_Texture* dialogue_window, SDL_Rect* dialogue_rect);//return 0 on sucess, -1 for text too long
+extern int show_dialogue(SDL_Renderer* renderer, string text, unsigned int delay, SDL_Texture* character, SDL_Rect* charaterRect_, SDL_Texture* dialogue_window, SDL_Rect* dialogue_rect);//return 0 on sucsess, -1 on too long
 extern double GetCPULoad();
 extern int GetWindowRefreshRate(SDL_Window* window);
