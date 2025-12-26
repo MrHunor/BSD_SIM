@@ -14,13 +14,14 @@ Changes Made [Date/Time/Summary of Changes Made]:
 |->16-10-2025/20:30/Created basic shooting first person game mode (gamestatus 2)
 |->07-11-2025/23:10/QOL Changes
 |->08-11-2025/00:17/Added more debug and fps
-|->08-11-2025/21:41/Converted std::cout to consoleout
+|->08-11-2025/21:41/Converted std::cout to ConsoleOut
 |->08-11-2025/22:02/converted all bmp to png to save space and have transparency (load via IMG_loadtexture)
 |->13-11-2025/20:11/Cleaned up and Optimesed by some variables to classes (Character class in class_def.h)
 |->18-11-2025/23:45/Added dialogue function and huge optimisation
 |->19-11-2025/15:45/Copilot Log optimisation &moved more varibles to character class
 |->19-12-2025/22:45/Resized Window from 1000² to 1024² for better performance
 |->19-12-2025/23:30/Added Dialogue bar
+|->26-12-2025/19:55/Added ColourCout Function and tconsolecolour 
 TODO:
 |->1Buxfixes needed: Give Abilitybar final tweaks; 
 |->3Create config (that can be written to using the ingame console menu) for things like other exit animations etc.
@@ -43,6 +44,9 @@ TODO:
 #include "Header.h"
 #include "class_def.h"
 using namespace std;
+
+
+bool ConsoleColour=true;//this has to be global so ConsoleOut can acsess it
 
 int main(int argc, char* argv[]) {
 	bool quit = false;
@@ -68,24 +72,24 @@ int main(int argc, char* argv[]) {
 	// Startup
 	HWND consoleWindow = GetConsoleWindow();
 	CreateLog();
-	consoleout("BSD_SIM_V1.0\n");
-	consoleout("[DEBUG]>>Debug Mode, y/n?\n");
+	ConsoleOut("BSD_SIM_V1.0\n");
+	ConsoleOut("[DEBUG]>>Debug Mode, y/n?\n");
 	cin >> placeholder;
 	if (placeholder == "y") {
 		Debug = true;
-		consoleout("[DEBUG]>>Debug Mode activated\n");
+		ConsoleOut("[DEBUG]>>Debug Mode activated\n");
 	}
 	else {
 		Debug = false;
-		consoleout("[DEBUG]>>Debug Mode NOT activated\n");
+		ConsoleOut("[DEBUG]>>Debug Mode NOT activated\n");
 	}
 
-	consoleout("[SYSTEM]>>Startup started at:" + get_current_time_string() + "\n");
+	ConsoleOut("[SYSTEM]>>Startup started at:" + get_current_time_string() + "\n");
 	Uint32 general_time = SDL_GetTicks();
 
 	// Init SDL & other stuff
 	if (SDL_Init(SDL_INIT_EVERYTHING) != 0) {
-		consoleout("[SYSTEM]>>SDL Initialization Error: " + string(SDL_GetError()) + "\n");
+		ConsoleOut("[SYSTEM]>>SDL Initialization Error: " + string(SDL_GetError()) + "\n");
 		return 1;
 	}
 	TTF_Init();
@@ -118,7 +122,7 @@ int main(int argc, char* argv[]) {
 	SDL_Texture* dialogue_window = IMG_LoadTexture(renderer, "assets\\dialogue_window.png");
 	// Check if textures created successfully
 	if (!backround_texture || !player_resting_1_texture || !player_resting_2_texture || !player_walking_1_texture || !player_walking_2_texture || !chuuya_resting_texture || !chuuya_aggressiv_texture || !player_fighting_right_1_texture || !player_fighting_right_2_texture || !player_fighting_right_3_texture || !player_fighting_left_1_texture || !player_fighting_left_2_texture || !player_fighting_left_3_texture || !chuuya_fighting_right_1_texture || !chuuya_fighting_right_2_texture || !chuuya_fighting_right_3_texture || !chuuya_fighting_left_1_texture || !chuuya_fighting_left_2_texture || !chuuya_fighting_left_3_texture || !shooting1P_1_texture || !shooting1P_2_texture) {
-		consoleout("[SYSTEM]>>Texture Creation Error: " + string(SDL_GetError()));
+		ConsoleOut("[SYSTEM]>>Texture Creation Error: " + string(SDL_GetError()));
 		return 1;
 	}
 
@@ -152,9 +156,9 @@ int main(int argc, char* argv[]) {
 	Uint32 fpsLimitTimer = SDL_GetTicks();
 	currenttime = SDL_GetTicks();
 
-	consoleout("[SYSTEM]>>Startup finished after:" + to_string(currenttime - general_time) + "ms  at:" + get_current_time_string() + "\n");
+	ConsoleOut("[SYSTEM]>>Startup finished after:" + to_string(currenttime - general_time) + "ms  at:" + get_current_time_string() + "\n");
 	if (!Debug) Intro(renderer);
-	consoleout("[SYSTEM]>>Program loop started\n");
+	ConsoleOut("[SYSTEM]>>Program loop started\n");
 	gamestatus = 1;  // for testing purposes
 
 	// Main Game Loop
@@ -166,68 +170,76 @@ int main(int argc, char* argv[]) {
 
 			quit2 = false;
 			SetForegroundWindow(consoleWindow);
-			consoleout("[CONSOLE]>>");
+			ConsoleOut("[CONSOLE]>>");
 			while (!quit2) {
 				cin >> command;
 				if (command == "exit") {
 					if (gamestatus != 0) {
-						consoleout("[CONSOLE]>>Quitted Console\n");
+						ConsoleOut("[CONSOLE]>>Quitted Console\n");
 						quit2 = true;
 					}
 					else {
-						consoleout("[CONSOLE]>>You cannot exit the console while in console mode! Change gamestatus first via the gamestatus command.\n");
-						consoleout("[CONSOLE]>>");
+						ConsoleOut("[CONSOLE]>>You cannot exit the console while in console mode! Change gamestatus first via the gamestatus command.\n");
+						ConsoleOut("[CONSOLE]>>");
 					}
 				}
 				else if (command == "help") {
-					consoleout("[CONSOLE]>>Commands:\n");
-					consoleout("[CONSOLE]>>exit: exits the console\n");
-					consoleout("[CONSOLE]>>help: shows this message\n");
-					consoleout("[CONSOLE]>>showlog: shows the log\n");
-					consoleout("[CONSOLE]>>log: put message into log\n");
-					consoleout("[CONSOLE]>>gamestatus: set gamestatus\n");
-					consoleout("[CONSOLE]>>fps: set fps limit\n");
-					consoleout("[CONSOLE]>>");
+					ConsoleOut("[CONSOLE]>>Commands:\n");
+					ConsoleOut("[CONSOLE]>>exit: exits the console\n");
+					ConsoleOut("[CONSOLE]>>help: shows this message\n");
+					ConsoleOut("[CONSOLE]>>showlog: shows the log\n");
+					ConsoleOut("[CONSOLE]>>log: put message into log\n");
+					ConsoleOut("[CONSOLE]>>gamestatus: set gamestatus\n");
+					ConsoleOut("[CONSOLE]>>fps: set fps limit\n");
+					ConsoleOut("[CONSOLE]>>dialogue: test the dialogue function\n");
+					ConsoleOut("[CONSOLE]>>tconsolecolour: toggle ConsoleColour\n");
+					ConsoleOut("[CONSOLE]>>");
 				}
 				else if (command == "fps") {
-					consoleout("[CONSOLE]>>Current FPS Limit=" + to_string(fpsLimit) + "\n[CONSOLE]>>Enter new FPS limit value(int) :");
+					ConsoleOut("[CONSOLE]>>Current FPS Limit=" + to_string(fpsLimit) + "\n[CONSOLE]>>Enter new FPS limit value(int) :");
 					cin >> placeholder;
 					if (stoi(placeholder) > GetWindowRefreshRate(window))
 					{
 						fpsLimit = GetWindowRefreshRate(window);
-						consoleout("[CONSOLE]>>Your monitor's refresh rate is:" + to_string(GetWindowRefreshRate(window)) + ". Setting fps to your monitors refresh rate.\n");
+						ConsoleOut("[CONSOLE]>>Your monitor's refresh rate is:" + to_string(GetWindowRefreshRate(window)) + ". Setting fps to your monitors refresh rate.\n");
 					}
 					else fpsLimit = stoi(placeholder);
-					consoleout("\n[CONSOLE]>>FPS limit set to:" + to_string(fpsLimit) + "\n");
-					consoleout("[CONSOLE]>>");
+					ConsoleOut("\n[CONSOLE]>>FPS limit set to:" + to_string(fpsLimit) + "\n");
+					ConsoleOut("[CONSOLE]>>");
 				}
 				else if (command == "log") {
 					// Handle log command
-					consoleout("[CONSOLE]>>Enter message to log(use '_' if you need to write sentences:");
+					ConsoleOut("[CONSOLE]>>Enter message to log(use '_' if you need to write sentences:");
 					cin >> placeholder;
 					Log("Console Log:" + placeholder);
-					consoleout("\n[CONOSOLE]Message logged\n");
-					consoleout("[CONSOLE]>>");
+					ConsoleOut("\n[CONOSOLE]Message logged\n");
+					ConsoleOut("[CONSOLE]>>");
 				}
 				else if (command == "showlog") {
-					consoleout("[CONSOLE]>>\n" + ReadLogFileToString() + "\n");
-					consoleout("[CONSOLE]>>");
+					ConsoleOut("[CONSOLE]>>\n" + ReadLogFileToString() + "\n");
+					ConsoleOut("[CONSOLE]>>");
 				}
 				else if (command == "gamestatus") {
-					consoleout("[CONSOLE]>>Current Game Status=" + to_string(gamestatus) + "\n[CONSOLE]>>Enter new gamestatus value(int) :");
+					ConsoleOut("[CONSOLE]>>Current Game Status=" + to_string(gamestatus) + "\n[CONSOLE]>>Enter new gamestatus value(int) :");
 					cin >> gamestatus;
-					consoleout("[CONSOLE]>>Gamestatus set to:" + to_string(gamestatus) + "\n");
-					consoleout("[CONSOLE]>>");
+					ConsoleOut("[CONSOLE]>>Gamestatus set to:" + to_string(gamestatus) + "\n");
+					ConsoleOut("[CONSOLE]>>");
 				}
 				else if (command == "dialogue")
 				{
 					cin >> placeholder;
-					if (show_dialogue(renderer, placeholder, 50, player_resting_1_texture, &dazai.rect, dialogue_window, &dialogue_window_rect) == -1) consoleout("[CONSOLE]>>ERROR:Text too long");
-					consoleout("[CONSOLE]>>");
+					if (show_dialogue(renderer, placeholder, 50, player_resting_1_texture, &dazai.rect, dialogue_window, &dialogue_window_rect) == -1) ConsoleOut("[CONSOLE]>>ERROR:Text too long");
+					ConsoleOut("[CONSOLE]>>");
+				}
+				else if (command == "tconsolecolour")
+				{
+					ConsoleColour = !ConsoleColour;
+					ConsoleOut("[CONSOLE]>>ConsoleColour is now:" + to_string(ConsoleColour)+"\n");
+					ConsoleOut("[CONSOLE]>>");
 				}
 				else {
-					consoleout("[CONSOLE]>>Command not found\n");
-					consoleout("[CONSOLE]>>");
+					ConsoleOut("[CONSOLE]>>Command not found\n");
+					ConsoleOut("[CONSOLE]>>");
 				}
 			}
 			break;
@@ -246,28 +258,29 @@ int main(int argc, char* argv[]) {
 							if (dazai.rect.y > 10) {
 								dazai.walking = true;
 								dazai.rect.y -= 10;
-								consoleout("dazai coordinates changed to:" + to_string(dazai.rect.x) + "," + to_string(dazai.rect.y));
+								
+								if(Debug)ConsoleOut("[DEBUG]>>dazai coordinates changed to:" + to_string(dazai.rect.x) + "," + to_string(dazai.rect.y));
 							}
 							break;
 						case SDLK_s:
 							if (dazai.rect.y < 974) {
 								dazai.walking = true;
 								dazai.rect.y += 10;
-								consoleout("dazai coordinates changed to:" + to_string(dazai.rect.x) + "," + to_string(dazai.rect.y));
+								if (Debug)ConsoleOut("[DEBUG]>>dazai coordinates changed to:" + to_string(dazai.rect.x) + "," + to_string(dazai.rect.y));
 							}
 							break;
 						case SDLK_a:
 							if (dazai.rect.x > 10) {
 								dazai.walking = true;
 								dazai.rect.x -= 10;
-								consoleout("dazai coordinates changed to:" + to_string(dazai.rect.x) + "," + to_string(dazai.rect.y));
+								if (Debug)ConsoleOut("[DEBUG]>>dazai coordinates changed to:" + to_string(dazai.rect.x) + "," + to_string(dazai.rect.y));
 							}
 							break;
 						case SDLK_d:
 							if (dazai.rect.x < 924) {
 								dazai.walking = true;
 								dazai.rect.x += 10;
-								consoleout("dazai coordinates changed to:" + to_string(dazai.rect.x) + "," + to_string(dazai.rect.y));
+								if (Debug)ConsoleOut("[DEBUG]>>dazai coordinates changed to:" + to_string(dazai.rect.x) + "," + to_string(dazai.rect.y));
 							}
 							break;
 						case SDLK_e:
@@ -416,16 +429,16 @@ int main(int argc, char* argv[]) {
 					if (Is_within_range(dazai.rect, chuuya.rect, 50) && dazai.fighting && !hit_took) {
 						hit_took = true;
 						chuuya.health -= 10;
-						consoleout("[GAME]>>Enemy: 'Chuuya' took a hit!\n");
+						ConsoleOut("[GAME]>>Enemy: 'Chuuya' took a hit!\n");
 					}
 					if (chuuya.health <= 0 && chuuya.rect.x != 9999) {
-						consoleout("[GAME]>>Enemy: 'Chuuya' is defeated!\n");
+						ConsoleOut("[GAME]>>Enemy: 'Chuuya' is defeated!\n");
 						chuuya.aggressiv = false;
 						chuuya.rect.x = 9999;
 					}
 
 					if (dazai.health <= 0) {
-						consoleout("[GAME]>>Player: 'dazai ' is defeated!\n");
+						ConsoleOut("[GAME]>>Player: 'dazai ' is defeated!\n");
 						quit = true;
 					}
 
@@ -438,7 +451,7 @@ int main(int argc, char* argv[]) {
 
 					if (chuuya.fighting && currenttime - chuuya.fightingCooldown > 500) {
 						dazai.health -= 10;
-						consoleout("[GAME]>>Player: 'dazai ' took a hit!\n");
+						ConsoleOut("[GAME]>>Player: 'dazai ' took a hit!\n");
 						chuuya.fightingCooldown = currenttime;
 					}
 
@@ -481,19 +494,19 @@ int main(int argc, char* argv[]) {
 
 				// Debug handling
 				if (Debug && currenttime - Debug_time > 500) {
-					consoleout("[DEBUG]>>Gametime:" + to_string(SDL_GetTicks()) + "\n");
-					consoleout("[DEBUG]>>FPS:" + to_string(lastFpsCount) + "\n");
-					consoleout("[DEBUG]>>RAM Usage:" + to_string(GetMemoryUsage()) + " MB" + "\n");
-					consoleout("[DEBUG]>>dazai coordinates:" + to_string(dazai.rect.x) + "," + to_string(dazai.rect.y) + "\n");
-					consoleout("[DEBUG]>>dazai health:" + to_string(dazai.health) + "\n");
-					consoleout("[DEBUG]>>Chuuya coordinates:" + to_string(chuuya.rect.x) + "," + to_string(chuuya.rect.y) + "\n");
-					consoleout("[DEBUG]>>Chuuya health:" + to_string(chuuya.health) + "\n");
-					consoleout("[DEBUG]>>Chuuya_aggressiv:" + to_string(chuuya.aggressiv) + "\n");
-					consoleout("[DEBUG]>>Distance between dazai and chuuya:" + to_string(Get_distance_between_rects(dazai.rect, chuuya.rect)) + "\n");
-					consoleout("[DEBUG]>>dazai.abilitymeter:" + to_string(dazai.ability) + "\n");
-					consoleout("[DEBUG]>>chuuya.abilitymeter:" + to_string(chuuya.ability) + "\n");
-					consoleout("[DEBUG]>>Current CPU Usage:" + to_string(GetCPULoad()) + "%\n");
-					consoleout("[DEBUG]>>This message will be displayed again in 500ms\n\n");
+					ConsoleOut("[DEBUG]>>Gametime:" + to_string(SDL_GetTicks()) + "\n");
+					ConsoleOut("[DEBUG]>>FPS:" + to_string(lastFpsCount) + "\n");
+					ConsoleOut("[DEBUG]>>RAM Usage:" + to_string(GetMemoryUsage()) + " MB" + "\n");
+					ConsoleOut("[DEBUG]>>dazai coordinates:" + to_string(dazai.rect.x) + "," + to_string(dazai.rect.y) + "\n");
+					ConsoleOut("[DEBUG]>>dazai health:" + to_string(dazai.health) + "\n");
+					ConsoleOut("[DEBUG]>>Chuuya coordinates:" + to_string(chuuya.rect.x) + "," + to_string(chuuya.rect.y) + "\n");
+					ConsoleOut("[DEBUG]>>Chuuya health:" + to_string(chuuya.health) + "\n");
+					ConsoleOut("[DEBUG]>>Chuuya_aggressiv:" + to_string(chuuya.aggressiv) + "\n");
+					ConsoleOut("[DEBUG]>>Distance between dazai and chuuya:" + to_string(Get_distance_between_rects(dazai.rect, chuuya.rect)) + "\n");
+					ConsoleOut("[DEBUG]>>dazai.abilitymeter:" + to_string(dazai.ability) + "\n");
+					ConsoleOut("[DEBUG]>>chuuya.abilitymeter:" + to_string(chuuya.ability) + "\n");
+					ConsoleOut("[DEBUG]>>Current CPU Usage:" + to_string(GetCPULoad()) + "%\n");
+					ConsoleOut("[DEBUG]>>This message will be displayed again in 500ms\n\n");
 
 					Debug_time = currenttime;
 				}
@@ -572,11 +585,11 @@ int main(int argc, char* argv[]) {
 					}
 
 					if (Debug && currenttime - Debug_time > 500) {
-						consoleout("[DEBUG]>>Gametime:" + to_string(SDL_GetTicks()) + "\n");
-						consoleout("[DEBUG]>>FPS:" + to_string(lastFpsCount) + "\n");
-						consoleout("[DEBUG]>>RAM Usage:" + to_string(GetMemoryUsage()) + " MB" + "\n");
-						consoleout("[DEBUG]>>Current CPU Usage:" + to_string(GetCPULoad()) + "%\n");
-						consoleout("[DEBUG]>>This message will be displayed again in 500ms\n\n");
+						ConsoleOut("[DEBUG]>>Gametime:" + to_string(SDL_GetTicks()) + "\n");
+						ConsoleOut("[DEBUG]>>FPS:" + to_string(lastFpsCount) + "\n");
+						ConsoleOut("[DEBUG]>>RAM Usage:" + to_string(GetMemoryUsage()) + " MB" + "\n");
+						ConsoleOut("[DEBUG]>>Current CPU Usage:" + to_string(GetCPULoad()) + "%\n");
+						ConsoleOut("[DEBUG]>>This message will be displayed again in 500ms\n\n");
 						Debug_time = currenttime;
 					}
 
@@ -591,12 +604,12 @@ int main(int argc, char* argv[]) {
 
 			break;
 		default:
-			consoleout("[GAME]>>Error: Unknown gamestatus value:" + to_string(gamestatus) + "\nShutting down...");
+			ConsoleOut("[GAME]>>Error: Unknown gamestatus value:" + to_string(gamestatus) + "\nShutting down...");
 			quit = true;
 		}
 	}
 	play_exit_animation(renderer);
-	consoleout("[SYSTEM]>>Exited Game Loop. Starting cleanup at:" + get_current_time_string() + "\n");
+	ConsoleOut("[SYSTEM]>>Exited Game Loop. Starting cleanup at:" + get_current_time_string() + "\n");
 	cleanuptime = SDL_GetTicks();
 	// Clean Up Resources
 	SDL_DestroyTexture(backround_texture);
@@ -624,8 +637,8 @@ int main(int argc, char* argv[]) {
 	SDL_Quit();
 	currenttime = SDL_GetTicks();
 
-	consoleout("[SYSTEM]>>Cleanup finished at:" + get_current_time_string() + "\n");
-	consoleout("[SYSTEM]>>Shutting down. Bye Bye!\n");
+	ConsoleOut("[SYSTEM]>>Cleanup finished at:" + get_current_time_string() + "\n");
+	ConsoleOut("[SYSTEM]>>Shutting down. Bye Bye!\n");
 
 	// Ensure log file is properly closed
 	CloseLog();

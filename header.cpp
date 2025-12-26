@@ -15,6 +15,7 @@
 #include <sstream>
 #include <string>
 #include <mutex>
+#include "Header.h"
 #pragma comment(lib, "pdh.lib")
 using namespace std;
 namespace fs = std::filesystem;
@@ -22,6 +23,17 @@ namespace fs = std::filesystem;
 // Add a single shared ofstream and mutex for efficient logging
 static std::ofstream g_logFile;
 static std::mutex g_logMutex;
+
+
+
+
+void CoutColour(const string& text, uint8_t colour)
+{
+	string output = "\033[";
+	output += to_string(static_cast<int>(colour)) + "m"+ text;
+	output += "\033[0m";
+	cout << output;
+}
 
 int GetWindowRefreshRate(SDL_Window* window) {
 	int displayIndex = SDL_GetWindowDisplayIndex(window);
@@ -263,10 +275,16 @@ void CloseLog() {
 	}
 }
 
-void consoleout(string message) {
-	cout << message;
-	// Keep Log but it is now lightweight (reuses file handle)
-	Log("(via consoleout)" + message);
+void ConsoleOut(const string& message) {
+	if (ConsoleColour)
+	{
+		if (message.find("SYSTEM") != string::npos) CoutColour(message, 37);
+		else if (message.find("DEBUG") != string::npos) CoutColour(message, 34);
+		else if (message.find("CONSOLE") != string::npos) CoutColour(message, 31);
+	}
+	else cout << message;
+	
+	Log("(via ConsoleOut)" + message);
 }
 
 void CreateLog()  // god thank chatgpt
@@ -322,8 +340,8 @@ void CreateLog()  // god thank chatgpt
 		cerr << "Error renaming " << tempFile << " to " << mainLog << endl;
 	}
 
-	consoleout("[SYSTEM]>>Log:" + archivedLog + " archived.\n");
-	consoleout("[SYSTEM]>>New Log:" + mainLog + ".\n");
+	ConsoleOut("[SYSTEM]>>Log:" + archivedLog + " archived.\n");
+	ConsoleOut("[SYSTEM]>>New Log:" + mainLog + ".\n");
 }
 
 string ReadLogFileToString() {
