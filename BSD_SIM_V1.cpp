@@ -21,18 +21,20 @@ Changes Made [Date/Time/Summary of Changes Made]:
 |->19-11-2025/15:45/Copilot Log optimisation &moved more varibles to character class
 |->19-12-2025/22:45/Resized Window from 1000² to 1024² for better performance
 |->19-12-2025/23:30/Added Dialogue bar
-|->26-12-2025/19:55/Added ColourCout Function and tconsolecolour 
+|->26-12-2025/19:55/Added ColourCout Function and tconsolecolour
+|->27-12-2025/13:52/Added Debug Class
 TODO:
-|->1Buxfixes needed: Give Abilitybar final tweaks; 
+|->1Buxfixes needed: Give Abilitybar final tweaks;
 |->3Create config (that can be written to using the ingame console menu) for things like other exit animations etc.
 |->4Make chuuyas ability better, buff chuuya!
 |->5HEALTH BAR IMPORTANT
-|->6Create a GAME!->dazai  walking aroung, shooting first person at enemys etc..
+|->6Create a GAME!->dazai walking aroung, shooting first person at enemys etc..
 |->7Add exit crash animaton
 |->8resize to 1024x1024 (PoT)
 |->9ADD PROPER LOGGING AND DEBUG OUPUT FOR GODS SAKE
-|->10Debug Info class 
 |->12Create Startups sceen with starup progress
+|->Add a enemy to the shooting game
+|->maybe rethink debug Class, one the one hand cleaner and nicer to  read on the other side double declaration and useless RAM usage
 ******************************************************************************************/
 
 #include <SDL.h>
@@ -43,17 +45,17 @@ TODO:
 
 #include "Header.h"
 #include "class_def.h"
+#include <algorithm>
 using namespace std;
 
-
-bool ConsoleColour=true;//this has to be global so ConsoleOut can acsess it
+bool ConsoleColour = true;//this has to be global so ConsoleOut can acsess it
 
 int main(int argc, char* argv[]) {
 	bool quit = false;
 	bool hit_took = false;
 	bool quit2 = false;
 	bool console = false;
-	bool Debug = false;
+
 	int gamestatus = 0;
 	int textureW = 0;
 	int textureH = 0;
@@ -72,15 +74,17 @@ int main(int argc, char* argv[]) {
 	// Startup
 	HWND consoleWindow = GetConsoleWindow();
 	CreateLog();
-	ConsoleOut("BSD_SIM_V1.0\n");
+	ConsoleOut("BSD_SIM_V0.9\n");
+	DebugClass Debug;
+	Debug.interval = 500;
 	ConsoleOut("[DEBUG]>>Debug Mode, y/n?\n");
 	cin >> placeholder;
 	if (placeholder == "y") {
-		Debug = true;
+		Debug.state = true;
 		ConsoleOut("[DEBUG]>>Debug Mode activated\n");
 	}
 	else {
-		Debug = false;
+		Debug.state = false;
 		ConsoleOut("[DEBUG]>>Debug Mode NOT activated\n");
 	}
 
@@ -157,7 +161,7 @@ int main(int argc, char* argv[]) {
 	currenttime = SDL_GetTicks();
 
 	ConsoleOut("[SYSTEM]>>Startup finished after:" + to_string(currenttime - general_time) + "ms  at:" + get_current_time_string() + "\n");
-	if (!Debug) Intro(renderer);
+	if (!Debug.state) Intro(renderer);
 	ConsoleOut("[SYSTEM]>>Program loop started\n");
 	gamestatus = 1;  // for testing purposes
 
@@ -193,6 +197,8 @@ int main(int argc, char* argv[]) {
 					ConsoleOut("[CONSOLE]>>fps: set fps limit\n");
 					ConsoleOut("[CONSOLE]>>dialogue: test the dialogue function\n");
 					ConsoleOut("[CONSOLE]>>tconsolecolour: toggle ConsoleColour\n");
+					ConsoleOut("[CONSOLE]>>tdebug: toggle Debug\n");
+					ConsoleOut("[CONSOLE]>>debugintervall: Set Debug interval in ms (the time at which the message is printed to the console), max. value = 65535\n");
 					ConsoleOut("[CONSOLE]>>");
 				}
 				else if (command == "fps") {
@@ -234,7 +240,25 @@ int main(int argc, char* argv[]) {
 				else if (command == "tconsolecolour")
 				{
 					ConsoleColour = !ConsoleColour;
-					ConsoleOut("[CONSOLE]>>ConsoleColour is now:" + to_string(ConsoleColour)+"\n");
+					ConsoleOut("[CONSOLE]>>ConsoleColour is now:" + to_string(ConsoleColour) + "\n");
+					ConsoleOut("[CONSOLE]>>");
+				}
+				else if (command == "tdebug")
+				{
+					Debug.state = !Debug.state;
+					ConsoleOut("[CONSOLE]>>Debug is now:" + to_string(Debug.state) + "\n");
+					ConsoleOut("[CONSOLE]>>");
+				}
+				else if (command == "debugintervall")
+				{
+					ConsoleOut("[CONSOLE]>>Current debug intervall:" + to_string(Debug.interval) + "Enter new Debug interval:");
+					cin >> placeholder;
+					if (std::all_of(placeholder.begin(), placeholder.end(), ::isdigit) && stoi(placeholder) <= 65535)
+					{
+						Debug.interval = stoi(placeholder);
+						ConsoleOut("\n[CONSOLE]>>Debug Intervall is now:" + to_string(Debug.interval) + "\n");
+					}
+					else ConsoleOut("[CONSOLE]>>Input Invalid. Check help for more information");
 					ConsoleOut("[CONSOLE]>>");
 				}
 				else {
@@ -258,29 +282,29 @@ int main(int argc, char* argv[]) {
 							if (dazai.rect.y > 10) {
 								dazai.walking = true;
 								dazai.rect.y -= 10;
-								
-								if(Debug)ConsoleOut("[DEBUG]>>dazai coordinates changed to:" + to_string(dazai.rect.x) + "," + to_string(dazai.rect.y));
+
+								if (Debug.state)ConsoleOut("[DEBUG]>>dazai coordinates changed to:" + to_string(dazai.rect.x) + "," + to_string(dazai.rect.y) + "\n");
 							}
 							break;
 						case SDLK_s:
 							if (dazai.rect.y < 974) {
 								dazai.walking = true;
 								dazai.rect.y += 10;
-								if (Debug)ConsoleOut("[DEBUG]>>dazai coordinates changed to:" + to_string(dazai.rect.x) + "," + to_string(dazai.rect.y));
+								if (Debug.state)ConsoleOut("[DEBUG]>>dazai coordinates changed to:" + to_string(dazai.rect.x) + "," + to_string(dazai.rect.y) + "\n");
 							}
 							break;
 						case SDLK_a:
 							if (dazai.rect.x > 10) {
 								dazai.walking = true;
 								dazai.rect.x -= 10;
-								if (Debug)ConsoleOut("[DEBUG]>>dazai coordinates changed to:" + to_string(dazai.rect.x) + "," + to_string(dazai.rect.y));
+								if (Debug.state)ConsoleOut("[DEBUG]>>dazai coordinates changed to:" + to_string(dazai.rect.x) + "," + to_string(dazai.rect.y) + "\n");
 							}
 							break;
 						case SDLK_d:
 							if (dazai.rect.x < 924) {
 								dazai.walking = true;
 								dazai.rect.x += 10;
-								if (Debug)ConsoleOut("[DEBUG]>>dazai coordinates changed to:" + to_string(dazai.rect.x) + "," + to_string(dazai.rect.y));
+								if (Debug.state)ConsoleOut("[DEBUG]>>dazai coordinates changed to:" + to_string(dazai.rect.x) + "," + to_string(dazai.rect.y) + "\n");
 							}
 							break;
 						case SDLK_e:
@@ -491,22 +515,40 @@ int main(int argc, char* argv[]) {
 					fpsCounter = 0;
 					fpsCounterTimer = currenttime;
 				}
+				//Debug Calculation
+				if (Debug.state)
+				{
+					Debug.gametime = SDL_GetTicks();
+					Debug.fps = lastFpsCount;
+					Debug.ramUsage = GetMemoryUsage();
+					Debug.dazaiCords[0] = dazai.rect.x;
+					Debug.dazaiCords[1] = dazai.rect.y;
+					Debug.dazaiHealth = dazai.health;
+					Debug.chuuyaCords[0] = chuuya.rect.x;
+					Debug.chuuyaCords[1] = chuuya.rect.y;
+					Debug.chuuyahealth = chuuya.health;
+					Debug.chuuyaAggresiv = chuuya.aggressiv;
+					Debug.disBetweenDAndC = Get_distance_between_rects(dazai.rect, chuuya.rect);
+					Debug.dazaiAbility = dazai.ability;
+					Debug.chuuyaAbility = chuuya.ability;
+					Debug.CPULoad = GetCPULoad();
+				}
 
-				// Debug handling
-				if (Debug && currenttime - Debug_time > 500) {
-					ConsoleOut("[DEBUG]>>Gametime:" + to_string(SDL_GetTicks()) + "\n");
-					ConsoleOut("[DEBUG]>>FPS:" + to_string(lastFpsCount) + "\n");
-					ConsoleOut("[DEBUG]>>RAM Usage:" + to_string(GetMemoryUsage()) + " MB" + "\n");
-					ConsoleOut("[DEBUG]>>dazai coordinates:" + to_string(dazai.rect.x) + "," + to_string(dazai.rect.y) + "\n");
-					ConsoleOut("[DEBUG]>>dazai health:" + to_string(dazai.health) + "\n");
-					ConsoleOut("[DEBUG]>>Chuuya coordinates:" + to_string(chuuya.rect.x) + "," + to_string(chuuya.rect.y) + "\n");
-					ConsoleOut("[DEBUG]>>Chuuya health:" + to_string(chuuya.health) + "\n");
-					ConsoleOut("[DEBUG]>>Chuuya_aggressiv:" + to_string(chuuya.aggressiv) + "\n");
-					ConsoleOut("[DEBUG]>>Distance between dazai and chuuya:" + to_string(Get_distance_between_rects(dazai.rect, chuuya.rect)) + "\n");
-					ConsoleOut("[DEBUG]>>dazai.abilitymeter:" + to_string(dazai.ability) + "\n");
-					ConsoleOut("[DEBUG]>>chuuya.abilitymeter:" + to_string(chuuya.ability) + "\n");
-					ConsoleOut("[DEBUG]>>Current CPU Usage:" + to_string(GetCPULoad()) + "%\n");
-					ConsoleOut("[DEBUG]>>This message will be displayed again in 500ms\n\n");
+				// Debug output
+				if (Debug.state && currenttime - Debug_time > Debug.interval) {
+					ConsoleOut("[DEBUG]>>Gametime:" + to_string(Debug.gametime) + "\n");
+					ConsoleOut("[DEBUG]>>FPS:" + to_string(Debug.fps) + "\n");
+					ConsoleOut("[DEBUG]>>RAM Usage:" + to_string(Debug.ramUsage) + " MB" + "\n");
+					ConsoleOut("[DEBUG]>>dazai coordinates:" + to_string(Debug.dazaiCords[0]) + "," + to_string(Debug.dazaiCords[1]) + "\n");
+					ConsoleOut("[DEBUG]>>dazai health:" + to_string(Debug.dazaiHealth) + "\n");
+					ConsoleOut("[DEBUG]>>Chuuya coordinates:" + to_string(Debug.chuuyaCords[0]) + "," + to_string(Debug.chuuyaCords[1]) + "\n");
+					ConsoleOut("[DEBUG]>>Chuuya health:" + to_string(Debug.chuuyahealth) + "\n");
+					ConsoleOut("[DEBUG]>>Chuuya_aggressiv:" + to_string(Debug.chuuyaAggresiv) + "\n");
+					ConsoleOut("[DEBUG]>>Distance between dazai and chuuya:" + to_string(Debug.disBetweenDAndC) + "\n");
+					ConsoleOut("[DEBUG]>>dazai.abilitymeter:" + to_string(Debug.dazaiAbility) + "\n");
+					ConsoleOut("[DEBUG]>>chuuya.abilitymeter:" + to_string(Debug.chuuyaAbility) + "\n");
+					ConsoleOut("[DEBUG]>>Current CPU Usage:" + to_string(Debug.CPULoad) + "%\n");
+					ConsoleOut("[DEBUG]>>This message will be displayed again in " + to_string(Debug.interval) + "ms\n\n");
 
 					Debug_time = currenttime;
 				}
@@ -582,15 +624,6 @@ int main(int argc, char* argv[]) {
 						lastFpsCount = fpsCounter;
 						fpsCounter = 0;
 						fpsCounterTimer = currenttime;
-					}
-
-					if (Debug && currenttime - Debug_time > 500) {
-						ConsoleOut("[DEBUG]>>Gametime:" + to_string(SDL_GetTicks()) + "\n");
-						ConsoleOut("[DEBUG]>>FPS:" + to_string(lastFpsCount) + "\n");
-						ConsoleOut("[DEBUG]>>RAM Usage:" + to_string(GetMemoryUsage()) + " MB" + "\n");
-						ConsoleOut("[DEBUG]>>Current CPU Usage:" + to_string(GetCPULoad()) + "%\n");
-						ConsoleOut("[DEBUG]>>This message will be displayed again in 500ms\n\n");
-						Debug_time = currenttime;
 					}
 
 					SDL_RenderPresent(renderer);

@@ -24,13 +24,10 @@ namespace fs = std::filesystem;
 static std::ofstream g_logFile;
 static std::mutex g_logMutex;
 
-
-
-
 void CoutColour(const string& text, uint8_t colour)
 {
 	string output = "\033[";
-	output += to_string(static_cast<int>(colour)) + "m"+ text;
+	output += to_string(static_cast<int>(colour)) + "m" + text;
 	output += "\033[0m";
 	cout << output;
 }
@@ -105,10 +102,9 @@ int show_dialogue(SDL_Renderer* renderer, string text, unsigned int delay, SDL_T
 		{
 			line++;
 			text_rect.y = text_rect.y + 35;
-			text_rect.x = 260-text_rect.w;
+			text_rect.x = 260 - text_rect.w;
 		}
 	}
-
 
 	return 0;
 }
@@ -283,7 +279,7 @@ void ConsoleOut(const string& message) {
 		else if (message.find("CONSOLE") != string::npos) CoutColour(message, 31);
 	}
 	else cout << message;
-	
+
 	Log("(via ConsoleOut)" + message);
 }
 

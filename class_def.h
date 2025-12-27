@@ -20,3 +20,25 @@ public:
 	Uint32 walkingCooldown; //used for chuuyas pathfiniding
 	Uint32 fightingCooldown;
 };
+
+class DebugClass
+{
+public:
+	/*Debug console out true or false*/
+	bool state;
+	Uint32 gametime;
+	/*This value is a Uint8 so you must cast it to a int before outputting it via cout*/
+	Uint8 fps;
+	float ramUsage;
+	double CPULoad;
+	Uint16 dazaiCords[2];
+	Uint8 dazaiHealth;
+	Uint16 chuuyaCords[2];
+	Uint8 chuuyahealth;
+	bool chuuyaAggresiv;
+	Uint16 disBetweenDAndC;
+	Uint8 dazaiAbility;
+	Uint8 chuuyaAbility;
+	/*Time for printing the message in ms*/
+	Uint16 interval;
+};
