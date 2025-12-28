@@ -12,16 +12,19 @@ extern string get_current_time_string();
 extern int Get_distance_between_rects(const SDL_Rect& rect1, const SDL_Rect& rect2);
 extern string ReadLogFileToString();
 extern Uint32 GetTimeDifference(Uint32 current, Uint32 previous);
-extern void render_abilitly_meter(SDL_Renderer* renderer, int value, SDL_Rect Rect);
+void render_abilitly_meter(SDL_Renderer* renderer, Uint16 value, SDL_Rect Rect);
 void ConsoleOut(const string& message);
 extern bool overwriteToFile(const std::string& filename, const std::string& content);
-extern string read_file_to_string(string file_path);
+string read_file_to_string(const string& file_path);
 extern void Intro(SDL_Renderer* renderer);
 extern float GetMemoryUsage();
 extern string get_current_clock_string();
-extern int show_dialogue(SDL_Renderer* renderer, string text, unsigned int delay, SDL_Texture* character, SDL_Rect* charaterRect_, SDL_Texture* dialogue_window, SDL_Rect* dialogue_rect);//return 0 on sucsess, -1 on too long
+//return 0 on sucsess, -1 on too long
+int show_dialogue(SDL_Renderer* renderer, string text, Uint16 delay, SDL_Texture* character, SDL_Rect* charaterRect_, SDL_Texture* dialogue_window, SDL_Rect* dialogue_rect);
 extern double GetCPULoad();
 extern int GetWindowRefreshRate(SDL_Window* window);
+extern Uint64 random(Uint64 lower_bound, Uint64 upper_bound);
+extern void DrawFilledCircle(SDL_Renderer* renderer, Uint16 cx, Uint16 cy, Uint16 r);
 /*
 Black = 30
 Red = 31

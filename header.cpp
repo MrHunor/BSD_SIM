@@ -68,7 +68,7 @@ double GetCPULoad()
 	return (1.0 - (idleDiff / (double)total)) * 100.0;
 }
 
-int show_dialogue(SDL_Renderer* renderer, string text, unsigned int delay, SDL_Texture* character, SDL_Rect* charaterRect_, SDL_Texture* dialogue_window, SDL_Rect* dialogue_rect)
+int show_dialogue(SDL_Renderer* renderer, string text, Uint16 delay, SDL_Texture* character, SDL_Rect* charaterRect_, SDL_Texture* dialogue_window, SDL_Rect* dialogue_rect)
 {
 	if (text.size() > 52)return -1;//max length reached, failure
 	SDL_Rect characterRect = *charaterRect_;
@@ -117,7 +117,7 @@ float GetMemoryUsage() {
 	return 0.0f;
 }
 
-void DrawFilledCircle(SDL_Renderer* renderer, int cx, int cy, int r) {
+void DrawFilledCircle(SDL_Renderer* renderer, Uint16 cx, Uint16 cy, Uint16 r) {
 	int dx, dy;
 	for (dy = -r; dy <= r; dy++) {
 		dx = (int)sqrt(r * r - dy * dy);
@@ -125,7 +125,7 @@ void DrawFilledCircle(SDL_Renderer* renderer, int cx, int cy, int r) {
 	}
 }
 
-int random(int lower_bound, int upper_bound) {
+Uint64 random(Uint64 lower_bound, Uint64 upper_bound) {
 	static std::random_device rd;   // seed generator
 	static std::mt19937 gen(rd());  // Mersenne Twister engine
 
@@ -162,7 +162,7 @@ bool overwriteToFile(const std::string& filename, const std::string& content) {
 	return 0;
 }
 
-string read_file_to_string(string file_path) {
+string read_file_to_string(const string& file_path) {
 	string filestring;
 
 	ifstream filehandler(file_path);
@@ -181,7 +181,7 @@ string read_file_to_string(string file_path) {
 	return filestring;
 }
 
-void render_abilitly_meter(SDL_Renderer* renderer, int value, SDL_Rect Rect) {
+void render_abilitly_meter(SDL_Renderer* renderer, Uint16 value, SDL_Rect Rect) {
 	int drawvalue;
 
 	// Draw Border
@@ -391,7 +391,7 @@ void play_exit_animation(SDL_Renderer* renderer) {
 		SDL_RenderPresent(renderer);
 	}
 	TTF_Font* Font = TTF_OpenFont("assets\\Impact.TTF", 300);
-	TTF_Font* Font2 = TTF_OpenFont("assets\\Impact2.TTF", 40);
+	TTF_Font* Font2 = TTF_OpenFont("assets\\Impact.TTF", 40);
 	SDL_Color color = { 255, 0, 0 };
 	SDL_Surface* text_surface = TTF_RenderText_Solid(Font, "EXIT!", color);
 	SDL_Surface* text_surface2 = TTF_RenderText_Solid(Font2, "Thank you for playing!", color);

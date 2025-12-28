@@ -23,6 +23,7 @@ Changes Made [Date/Time/Summary of Changes Made]:
 |->19-12-2025/23:30/Added Dialogue bar
 |->26-12-2025/19:55/Added ColourCout Function and tconsolecolour
 |->27-12-2025/13:52/Added Debug Class
+|->28-12-2025/00:25/Small Performance upgrade, switched int to UintXX & fixed gamestatus bug
 TODO:
 |->1Buxfixes needed: Give Abilitybar final tweaks;
 |->3Create config (that can be written to using the ingame console menu) for things like other exit animations etc.
@@ -35,6 +36,10 @@ TODO:
 |->12Create Startups sceen with starup progress
 |->Add a enemy to the shooting game
 |->maybe rethink debug Class, one the one hand cleaner and nicer to  read on the other side double declaration and useless RAM usage
+|->expand the Character class to textures as well
+|->think of a dynamic draw over way for gamestatus 2 so that u dont always have to draw over the hole screen when moving
+|->add debug to gamestatus 2
+|->add enemy to gamestatus 2
 ******************************************************************************************/
 
 #include <SDL.h>
@@ -42,13 +47,16 @@ TODO:
 #include <Windows.h>
 #include <SDL_ttf.h>
 #include <iostream>
+#include <mutex>
 
 #include "Header.h"
 #include "class_def.h"
 #include <algorithm>
-using namespace std;
 
-bool ConsoleColour = true;//this has to be global so ConsoleOut can acsess it
+using namespace std;
+std::once_flag flag;
+
+bool ConsoleColour = true;//this has to be global so ConsoleOut can access it
 
 int main(int argc, char* argv[]) {
 	bool quit = false;
@@ -56,17 +64,19 @@ int main(int argc, char* argv[]) {
 	bool quit2 = false;
 	bool console = false;
 
-	int gamestatus = 0;
+	Uint8 gamestatus = 0;
 	int textureW = 0;
 	int textureH = 0;
-	int fpsCounter = 0;
-	int lastFpsCount = 0;
-	int fpsLimit = 30;
+	Uint16 fpsCounter = 0;
+	Uint16 lastFpsCount = 0;
+	Uint16 fpsLimit = 30;
 	string placeholder;
 	string command;
 	Uint32 currenttime;
 	Character dazai = {};
 	Character chuuya = {};
+	Character gunHolder = {};
+	Character enemy = {};
 	dazai.health = 100;
 	chuuya.health = 150;
 	SDL_Event event;
@@ -124,6 +134,7 @@ int main(int argc, char* argv[]) {
 	SDL_Texture* shooting1P_1_texture = IMG_LoadTexture(renderer, "assets\\Shooting1P_1.png");
 	SDL_Texture* shooting1P_2_texture = IMG_LoadTexture(renderer, "assets\\Shooting1P_2.png");
 	SDL_Texture* dialogue_window = IMG_LoadTexture(renderer, "assets\\dialogue_window.png");
+	SDL_Texture* enemy_texture = IMG_LoadTexture(renderer, "assets\\Enemy.png");
 	// Check if textures created successfully
 	if (!backround_texture || !player_resting_1_texture || !player_resting_2_texture || !player_walking_1_texture || !player_walking_2_texture || !chuuya_resting_texture || !chuuya_aggressiv_texture || !player_fighting_right_1_texture || !player_fighting_right_2_texture || !player_fighting_right_3_texture || !player_fighting_left_1_texture || !player_fighting_left_2_texture || !player_fighting_left_3_texture || !chuuya_fighting_right_1_texture || !chuuya_fighting_right_2_texture || !chuuya_fighting_right_3_texture || !chuuya_fighting_left_1_texture || !chuuya_fighting_left_2_texture || !chuuya_fighting_left_3_texture || !shooting1P_1_texture || !shooting1P_2_texture) {
 		ConsoleOut("[SYSTEM]>>Texture Creation Error: " + string(SDL_GetError()));
@@ -138,7 +149,8 @@ int main(int argc, char* argv[]) {
 	SDL_QueryTexture(chuuya_resting_texture, NULL, NULL, &textureW, &textureH);
 	chuuya.rect = { 800, 800, textureW, textureH };
 	SDL_QueryTexture(shooting1P_1_texture, NULL, NULL, &textureW, &textureH);
-	SDL_Rect shooting1P_rect = { 620, 676, textureW, textureH }; // no need for a rect for the 2 frame because the dimesions are the same for both frames
+	// no need for a rect for the 2 frame because the dimesions are the same for both frames
+	gunHolder.rect = { 620, 676, textureW, textureH };
 	SDL_QueryTexture(dialogue_window, NULL, NULL, &textureW, &textureH);
 	SDL_Rect dialogue_window_rect = { 250, 820, textureW, textureH };
 
@@ -226,9 +238,10 @@ int main(int argc, char* argv[]) {
 					ConsoleOut("[CONSOLE]>>");
 				}
 				else if (command == "gamestatus") {
-					ConsoleOut("[CONSOLE]>>Current Game Status=" + to_string(gamestatus) + "\n[CONSOLE]>>Enter new gamestatus value(int) :");
-					cin >> gamestatus;
-					ConsoleOut("[CONSOLE]>>Gamestatus set to:" + to_string(gamestatus) + "\n");
+					ConsoleOut("[CONSOLE]>>Current Game Status=" + to_string(static_cast<int>(gamestatus)) + "\n[CONSOLE]>>Enter new gamestatus value(int) :");
+					cin >> placeholder;
+					gamestatus = static_cast<Uint8>(stoi(placeholder));
+					ConsoleOut("[CONSOLE]>>Gamestatus set to:" + to_string(static_cast<int>(gamestatus)) + "\n");
 					ConsoleOut("[CONSOLE]>>");
 				}
 				else if (command == "dialogue")
@@ -455,10 +468,12 @@ int main(int argc, char* argv[]) {
 						chuuya.health -= 10;
 						ConsoleOut("[GAME]>>Enemy: 'Chuuya' took a hit!\n");
 					}
-					if (chuuya.health <= 0 && chuuya.rect.x != 9999) {
-						ConsoleOut("[GAME]>>Enemy: 'Chuuya' is defeated!\n");
-						chuuya.aggressiv = false;
-						chuuya.rect.x = 9999;
+					if (chuuya.health <= 0) {
+						std::call_once(flag, [&]
+							{
+								ConsoleOut("[GAME]>>Enemy: 'Chuuya' is defeated!\n");
+								chuuya.aggressiv = false;
+							});
 					}
 
 					if (dazai.health <= 0) {
@@ -572,8 +587,10 @@ int main(int argc, char* argv[]) {
 				if (currenttime - fpsLimitTimer > (1000 / fpsLimit)) {
 					fpsLimitTimer = currenttime;
 					currenttime = SDL_GetTicks();
-					SDL_RenderCopy(renderer, shooting1P_1_texture, 0, &shooting1P_rect);
-
+					SDL_RenderCopy(renderer, shooting1P_1_texture, 0, &gunHolder.rect);
+					SDL_SetRenderDrawColor(renderer, 255, 0, 0, 0);
+					DrawFilledCircle(renderer, gunHolder.rect.x - 100, gunHolder.rect.y - 100, 5);
+					SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
 					while (SDL_PollEvent(&event)) {
 						if (event.type == SDL_QUIT) {
 							quit = true;
@@ -590,25 +607,25 @@ int main(int argc, char* argv[]) {
 								quit = true;
 								break;
 							case SDLK_w:
-								if (shooting1P_rect.y > 300) shooting1P_rect.y -= 100;
+								if (gunHolder.rect.y > 300) gunHolder.rect.y -= 100;
 								SDL_RenderClear(renderer);
 								break;
 							case SDLK_s:
-								if (shooting1P_rect.y < 676) shooting1P_rect.y += 100;
+								if (gunHolder.rect.y < 676) gunHolder.rect.y += 100;
 								SDL_RenderClear(renderer);
 								break;
 							case SDLK_a:
-								if (shooting1P_rect.x > 300) shooting1P_rect.x -= 100;
+								if (gunHolder.rect.x > 300) gunHolder.rect.x -= 100;
 								SDL_RenderClear(renderer);
 								break;
 							case SDLK_d:
-								if (shooting1P_rect.x < 620) shooting1P_rect.x += 100;
+								if (gunHolder.rect.x < 620) gunHolder.rect.x += 100;
 								SDL_RenderClear(renderer);
 								break;
 							case SDLK_e:  // shoot
 								if (currenttime - shootingcooldown > 200) {
 									SDL_RenderClear(renderer);
-									SDL_RenderCopy(renderer, shooting1P_2_texture, 0, &shooting1P_rect);
+									SDL_RenderCopy(renderer, shooting1P_2_texture, 0, &gunHolder.rect);
 									SDL_RenderPresent(renderer);
 									SDL_Delay(100);
 									SDL_RenderClear(renderer);
