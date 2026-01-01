@@ -24,6 +24,8 @@ public:
 class DebugClass
 {
 public:
+	/*Time for printing the message in ms*/
+	Uint16 interval;
 	/*Debug console out true or false*/
 	bool state;
 	Uint32 gametime;
@@ -31,6 +33,7 @@ public:
 	Uint8 fps;
 	float ramUsage;
 	double CPULoad;
+	//Debug Variables for gamestatus 1
 	Uint16 dazaiCords[2];
 	Uint8 dazaiHealth;
 	Uint16 chuuyaCords[2];
@@ -39,6 +42,10 @@ public:
 	Uint16 disBetweenDAndC;
 	Uint8 dazaiAbility;
 	Uint8 chuuyaAbility;
-	/*Time for printing the message in ms*/
-	Uint16 interval;
+	//Debug Variables for gamestatus 2
+	Uint16 gunHolderCords[2];
+	Uint16 crossairCords[2];
+	Uint16 enemyCords[2];
+	Uint8 enemyHealth;
+	Uint8 gunHolderHealth;
 };

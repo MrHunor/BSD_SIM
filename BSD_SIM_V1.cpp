@@ -24,6 +24,7 @@ Changes Made [Date/Time/Summary of Changes Made]:
 |->26-12-2025/19:55/Added ColourCout Function and tconsolecolour
 |->27-12-2025/13:52/Added Debug Class
 |->28-12-2025/00:25/Small Performance upgrade, switched int to UintXX & fixed gamestatus bug
+|->01-12-2025/17:44/[UNSTABLE]Added Debug and Enemyto gamestatus 2 & did some optics on the code
 TODO:
 |->1Buxfixes needed: Give Abilitybar final tweaks;
 |->3Create config (that can be written to using the ingame console menu) for things like other exit animations etc.
@@ -38,8 +39,8 @@ TODO:
 |->maybe rethink debug Class, one the one hand cleaner and nicer to  read on the other side double declaration and useless RAM usage
 |->expand the Character class to textures as well
 |->think of a dynamic draw over way for gamestatus 2 so that u dont always have to draw over the hole screen when moving
-|->add debug to gamestatus 2
-|->add enemy to gamestatus 2
+|-> optimise character variables
+|->Optimise enemy gamestatus 2 if needs to
 ******************************************************************************************/
 
 #include <SDL.h>
@@ -58,29 +59,10 @@ std::once_flag flag;
 
 bool ConsoleColour = true;//this has to be global so ConsoleOut can access it
 
-int main(int argc, char* argv[]) {
-	bool quit = false;
-	bool hit_took = false;
-	bool quit2 = false;
-	bool console = false;
-
-	Uint8 gamestatus = 0;
-	int textureW = 0;
-	int textureH = 0;
-	Uint16 fpsCounter = 0;
-	Uint16 lastFpsCount = 0;
-	Uint16 fpsLimit = 30;
+int main(int argc, char* argv[])
+{
+	//has to be defined before because the Debug? window uses it
 	string placeholder;
-	string command;
-	Uint32 currenttime;
-	Character dazai = {};
-	Character chuuya = {};
-	Character gunHolder = {};
-	Character enemy = {};
-	dazai.health = 100;
-	chuuya.health = 150;
-	SDL_Event event;
-
 	// Startup
 	HWND consoleWindow = GetConsoleWindow();
 	CreateLog();
@@ -100,6 +82,45 @@ int main(int argc, char* argv[]) {
 
 	ConsoleOut("[SYSTEM]>>Startup started at:" + get_current_time_string() + "\n");
 	Uint32 general_time = SDL_GetTicks();
+
+	//initialise & declare Variables & Objects
+	bool quit = false;
+	bool hit_took = false;
+	bool quit2 = false;
+	bool console = false;
+	Uint8 gamestatus = 0;
+	Uint16 fpsCounter = 0;
+	Uint16 lastFpsCount = 0;
+	Uint16 fpsLimit = 30;
+	Uint32 currenttime;
+	Uint32 Debug_time = SDL_GetTicks();
+	Uint32 cleanuptime = SDL_GetTicks();
+	Uint32 abilitlycountdown = SDL_GetTicks();
+	Uint32 shootingcooldown = SDL_GetTicks();
+	Uint32 fpsCounterTimer = SDL_GetTicks();
+	Uint32 fpsLimitTimer = SDL_GetTicks();
+	//Have to be int because some SDL function only takes these as int
+	int textureW = 0;
+	int textureH = 0;
+	string command;
+	SDL_Event event;
+	Character dazai = {};
+	Character chuuya = {};
+	Character gunHolder = {};
+	Character enemy = {};
+
+	dazai.health = 100;
+	chuuya.health = 100;
+	gunHolder.health = 100;
+	dazai.LastFrameSwitchResting = SDL_GetTicks();
+	dazai.LastFrameSwitchWalking = SDL_GetTicks();
+	chuuya.walkingCooldown = SDL_GetTicks();
+	chuuya.LastFrameSwitchFighting = SDL_GetTicks();
+	chuuya.fightingCooldown = SDL_GetTicks();
+	dazai.LastFrameSwitchFighting = SDL_GetTicks();
+
+	//will be set as soon as gamemode is 2
+	enemy.health = 0;
 
 	// Init SDL & other stuff
 	if (SDL_Init(SDL_INIT_EVERYTHING) != 0) {
@@ -136,7 +157,7 @@ int main(int argc, char* argv[]) {
 	SDL_Texture* dialogue_window = IMG_LoadTexture(renderer, "assets\\dialogue_window.png");
 	SDL_Texture* enemy_texture = IMG_LoadTexture(renderer, "assets\\Enemy.png");
 	// Check if textures created successfully
-	if (!backround_texture || !player_resting_1_texture || !player_resting_2_texture || !player_walking_1_texture || !player_walking_2_texture || !chuuya_resting_texture || !chuuya_aggressiv_texture || !player_fighting_right_1_texture || !player_fighting_right_2_texture || !player_fighting_right_3_texture || !player_fighting_left_1_texture || !player_fighting_left_2_texture || !player_fighting_left_3_texture || !chuuya_fighting_right_1_texture || !chuuya_fighting_right_2_texture || !chuuya_fighting_right_3_texture || !chuuya_fighting_left_1_texture || !chuuya_fighting_left_2_texture || !chuuya_fighting_left_3_texture || !shooting1P_1_texture || !shooting1P_2_texture) {
+	if (!backround_texture || !player_resting_1_texture || !player_resting_2_texture || !player_walking_1_texture || !player_walking_2_texture || !chuuya_resting_texture || !chuuya_aggressiv_texture || !player_fighting_right_1_texture || !player_fighting_right_2_texture || !player_fighting_right_3_texture || !player_fighting_left_1_texture || !player_fighting_left_2_texture || !player_fighting_left_3_texture || !chuuya_fighting_right_1_texture || !chuuya_fighting_right_2_texture || !chuuya_fighting_right_3_texture || !chuuya_fighting_left_1_texture || !chuuya_fighting_left_2_texture || !chuuya_fighting_left_3_texture || !shooting1P_1_texture || !shooting1P_2_texture || !enemy_texture) {
 		ConsoleOut("[SYSTEM]>>Texture Creation Error: " + string(SDL_GetError()));
 		return 1;
 	}
@@ -153,23 +174,12 @@ int main(int argc, char* argv[]) {
 	gunHolder.rect = { 620, 676, textureW, textureH };
 	SDL_QueryTexture(dialogue_window, NULL, NULL, &textureW, &textureH);
 	SDL_Rect dialogue_window_rect = { 250, 820, textureW, textureH };
-
+	SDL_QueryTexture(enemy_texture, NULL, NULL, &textureW, &textureH);
+	//x,y will be defined as soon as gamemode 2 is called
+	enemy.rect = { NULL,NULL,textureW,textureH };
 	SDL_Point chuuyaRestingCenter = { chuuya.rect.w / 2, chuuya.rect.h / 2 };
 	SDL_Point playerRestingCenter = { dazai.rect.w / 2, dazai.rect.h / 2 };
 
-	// Timing Variables
-	dazai.LastFrameSwitchResting = SDL_GetTicks();
-	dazai.LastFrameSwitchWalking = SDL_GetTicks();
-	chuuya.walkingCooldown = SDL_GetTicks();
-	chuuya.LastFrameSwitchFighting = SDL_GetTicks();
-	chuuya.fightingCooldown = SDL_GetTicks();
-	dazai.LastFrameSwitchFighting = SDL_GetTicks();
-	Uint32 Debug_time = SDL_GetTicks();
-	Uint32 cleanuptime = SDL_GetTicks();
-	Uint32 abilitlycountdown = SDL_GetTicks();
-	Uint32 shootingcooldown = SDL_GetTicks();
-	Uint32 fpsCounterTimer = SDL_GetTicks();
-	Uint32 fpsLimitTimer = SDL_GetTicks();
 	currenttime = SDL_GetTicks();
 
 	ConsoleOut("[SYSTEM]>>Startup finished after:" + to_string(currenttime - general_time) + "ms  at:" + get_current_time_string() + "\n");
@@ -288,6 +298,7 @@ int main(int argc, char* argv[]) {
 				while (SDL_PollEvent(&event)) {
 					if (event.type == SDL_QUIT) {
 						quit = true;
+						ConsoleOut("[GAME]>>Quitting due to User Escaping via SDL_QUIT from Gamestatus 1\n");
 					}
 					else if (event.type == SDL_KEYDOWN) {
 						switch (event.key.keysym.sym) {
@@ -329,6 +340,7 @@ int main(int argc, char* argv[]) {
 							break;
 						case SDLK_ESCAPE:
 							quit = true;
+							ConsoleOut("[GAME]>>Quitting due to User Escaping via ESCfrom Gamestatus 1\n");
 							break;
 						case SDLK_c:
 							gamestatus = 0;
@@ -479,6 +491,7 @@ int main(int argc, char* argv[]) {
 					if (dazai.health <= 0) {
 						ConsoleOut("[GAME]>>Player: 'dazai ' is defeated!\n");
 						quit = true;
+						ConsoleOut("[GAME]>>Quitting due to Dazai Dying from Gamestatus 1\n");
 					}
 
 					if (Is_within_range(dazai.rect, chuuya.rect, 50)) {
@@ -536,6 +549,7 @@ int main(int argc, char* argv[]) {
 					Debug.gametime = SDL_GetTicks();
 					Debug.fps = lastFpsCount;
 					Debug.ramUsage = GetMemoryUsage();
+					Debug.CPULoad = GetCPULoad();
 					Debug.dazaiCords[0] = dazai.rect.x;
 					Debug.dazaiCords[1] = dazai.rect.y;
 					Debug.dazaiHealth = dazai.health;
@@ -546,13 +560,13 @@ int main(int argc, char* argv[]) {
 					Debug.disBetweenDAndC = Get_distance_between_rects(dazai.rect, chuuya.rect);
 					Debug.dazaiAbility = dazai.ability;
 					Debug.chuuyaAbility = chuuya.ability;
-					Debug.CPULoad = GetCPULoad();
 				}
 
 				// Debug output
 				if (Debug.state && currenttime - Debug_time > Debug.interval) {
 					ConsoleOut("[DEBUG]>>Gametime:" + to_string(Debug.gametime) + "\n");
 					ConsoleOut("[DEBUG]>>FPS:" + to_string(Debug.fps) + "\n");
+					ConsoleOut("[DEBUG]>>Current CPU Usage:" + to_string(Debug.CPULoad) + "%\n");
 					ConsoleOut("[DEBUG]>>RAM Usage:" + to_string(Debug.ramUsage) + " MB" + "\n");
 					ConsoleOut("[DEBUG]>>dazai coordinates:" + to_string(Debug.dazaiCords[0]) + "," + to_string(Debug.dazaiCords[1]) + "\n");
 					ConsoleOut("[DEBUG]>>dazai health:" + to_string(Debug.dazaiHealth) + "\n");
@@ -562,7 +576,6 @@ int main(int argc, char* argv[]) {
 					ConsoleOut("[DEBUG]>>Distance between dazai and chuuya:" + to_string(Debug.disBetweenDAndC) + "\n");
 					ConsoleOut("[DEBUG]>>dazai.abilitymeter:" + to_string(Debug.dazaiAbility) + "\n");
 					ConsoleOut("[DEBUG]>>chuuya.abilitymeter:" + to_string(Debug.chuuyaAbility) + "\n");
-					ConsoleOut("[DEBUG]>>Current CPU Usage:" + to_string(Debug.CPULoad) + "%\n");
 					ConsoleOut("[DEBUG]>>This message will be displayed again in " + to_string(Debug.interval) + "ms\n\n");
 
 					Debug_time = currenttime;
@@ -578,22 +591,36 @@ int main(int argc, char* argv[]) {
 			}
 			break;
 
-		case 2:  // Shooting game first person - Practice
+		case 2:
+		{
+			// Shooting game first person - Practice
 			quit2 = false;
 			SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
 			SDL_RenderClear(renderer);
-			while (!quit2) {
+			while (!quit2)
+			{
 				currenttime = SDL_GetTicks();
 				if (currenttime - fpsLimitTimer > (1000 / fpsLimit)) {
 					fpsLimitTimer = currenttime;
 					currenttime = SDL_GetTicks();
+					if (enemy.health <= 0)
+					{
+						enemy.rect.x = random(0, 500);
+						enemy.rect.y = random(0, 500);
+						enemy.health = 100;
+					}
+
+					//Drawing
 					SDL_RenderCopy(renderer, shooting1P_1_texture, 0, &gunHolder.rect);
+					SDL_RenderCopy(renderer, enemy_texture, 0, &enemy.rect);
 					SDL_SetRenderDrawColor(renderer, 255, 0, 0, 0);
 					DrawFilledCircle(renderer, gunHolder.rect.x - 100, gunHolder.rect.y - 100, 5);
 					SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
+					SDL_RenderPresent(renderer);
 					while (SDL_PollEvent(&event)) {
 						if (event.type == SDL_QUIT) {
 							quit = true;
+							ConsoleOut("[GAME]>>Quitting due to User Escaping via SDL_QUIT from Gamestatus 2\n");
 							quit2 = true;
 						}
 
@@ -605,6 +632,7 @@ int main(int argc, char* argv[]) {
 								break;
 							case SDLK_ESCAPE:
 								quit = true;
+								ConsoleOut("[GAME]>>Quitting due to User Escaping via ESC from Gamestatus 2\n");
 								break;
 							case SDLK_w:
 								if (gunHolder.rect.y > 300) gunHolder.rect.y -= 100;
@@ -623,6 +651,7 @@ int main(int argc, char* argv[]) {
 								SDL_RenderClear(renderer);
 								break;
 							case SDLK_e:  // shoot
+								//shot animation
 								if (currenttime - shootingcooldown > 200) {
 									SDL_RenderClear(renderer);
 									SDL_RenderCopy(renderer, shooting1P_2_texture, 0, &gunHolder.rect);
@@ -631,66 +660,110 @@ int main(int argc, char* argv[]) {
 									SDL_RenderClear(renderer);
 									shootingcooldown = currenttime;
 								}
+								//check if crossair is above enemy
+								//check x
+								if (gunHolder.rect.x - 100 >= enemy.rect.x && gunHolder.rect.x - 100 <= enemy.rect.x + enemy.rect.w)
+								{
+									//check y
+									if (gunHolder.rect.y - 100 >= enemy.rect.y && gunHolder.rect.y - 100 <= enemy.rect.y + enemy.rect.h)
+									{
+										enemy.health -= 20;
+									}
+								}
 								break;
 							}
 						}
 					}
 
-					// fps debug prep
+					//Debug Prep
 					if (currenttime - fpsCounterTimer > 1000) {
 						lastFpsCount = fpsCounter;
 						fpsCounter = 0;
 						fpsCounterTimer = currenttime;
 					}
+					//Debug Calculation
+					if (Debug.state)
+					{
+						Debug.gametime = SDL_GetTicks();
+						Debug.fps = lastFpsCount;
+						Debug.ramUsage = GetMemoryUsage();
+						Debug.CPULoad = GetCPULoad();
+						Debug.gunHolderCords[0] = gunHolder.rect.x;
+						Debug.gunHolderCords[1] = gunHolder.rect.y;
+						Debug.crossairCords[0] = gunHolder.rect.x - 100;
+						Debug.crossairCords[1] = gunHolder.rect.y - 100;
+						Debug.enemyCords[0] = enemy.rect.x;
+						Debug.enemyCords[1] = enemy.rect.y;
+						Debug.gunHolderHealth = gunHolder.health;
+						Debug.enemyHealth = enemy.health;
+					}
 
-					SDL_RenderPresent(renderer);
-					fpsCounter++;
+					// Debug output
+					if (Debug.state && currenttime - Debug_time > Debug.interval) {
+						ConsoleOut("[DEBUG]>>Gametime:" + to_string(Debug.gametime) + "\n");
+						ConsoleOut("[DEBUG]>>FPS:" + to_string(Debug.fps) + "\n");
+						ConsoleOut("[DEBUG]>>Current CPU Usage:" + to_string(Debug.CPULoad) + "%\n");
+						ConsoleOut("[DEBUG]>>RAM Usage:" + to_string(Debug.ramUsage) + " MB" + "\n");
+						ConsoleOut("[DEBUG]>>GunHolder Cords:" + to_string(Debug.gunHolderCords[0]) + "," + to_string(Debug.gunHolderCords[1]) + "\n");
+						ConsoleOut("[DEBUG]>>Crossair Cords:" + to_string(Debug.crossairCords[0]) + "," + to_string(Debug.crossairCords[1]) + "\n");
+						ConsoleOut("[DEBUG]>>Enemy Cords:" + to_string(Debug.enemyCords[0]) + "," + to_string(Debug.enemyCords[1]) + "\n");
+						ConsoleOut("[DEBUG]>>GunHolder Health:" + to_string(gunHolder.health) + "\n");
+						ConsoleOut("[DEBUG]>>Enemy Health:" + to_string(enemy.health) + "\n");
+						ConsoleOut("[DEBUG]>>This message will be displayed again in " + to_string(Debug.interval) + "ms\n\n");
+
+						Debug_time = currenttime;
+					}
 				}
 				else
 				{
 					SDL_Delay(1000 / fpsLimit);
 				}
 			}
-
 			break;
+		}
 		default:
+		{
 			ConsoleOut("[GAME]>>Error: Unknown gamestatus value:" + to_string(gamestatus) + "\nShutting down...");
 			quit = true;
+			ConsoleOut("[GAME]>>Quitting due to Unknown Gamestatus Value\n");
+		}
+
+		if (Debug.state)ConsoleOut("[DEBUG]>>Playing Exit Animation");
+		play_exit_animation(renderer);
+		ConsoleOut("[SYSTEM]>>Exited Game Loop. Starting cleanup at:" + get_current_time_string() + "\n");
+		cleanuptime = SDL_GetTicks();
+		// Clean Up Resources
+		SDL_DestroyTexture(backround_texture);
+		SDL_DestroyTexture(player_resting_1_texture);
+		SDL_DestroyTexture(player_resting_2_texture);
+		SDL_DestroyTexture(player_walking_1_texture);
+		SDL_DestroyTexture(player_walking_2_texture);
+		SDL_DestroyTexture(chuuya_resting_texture);
+		SDL_DestroyTexture(chuuya_aggressiv_texture);
+		SDL_DestroyTexture(player_fighting_right_1_texture);
+		SDL_DestroyTexture(player_fighting_right_2_texture);
+		SDL_DestroyTexture(player_fighting_right_3_texture);
+		SDL_DestroyTexture(player_fighting_left_1_texture);
+		SDL_DestroyTexture(player_fighting_left_2_texture);
+		SDL_DestroyTexture(player_fighting_left_3_texture);
+		SDL_DestroyTexture(chuuya_fighting_right_1_texture);
+		SDL_DestroyTexture(chuuya_fighting_right_2_texture);
+		SDL_DestroyTexture(chuuya_fighting_right_3_texture);
+		SDL_DestroyTexture(chuuya_fighting_left_1_texture);
+		SDL_DestroyTexture(chuuya_fighting_left_2_texture);
+		SDL_DestroyTexture(chuuya_fighting_left_3_texture);
+
+		SDL_DestroyRenderer(renderer);
+		SDL_DestroyWindow(window);
+		SDL_Quit();
+		currenttime = SDL_GetTicks();
+
+		ConsoleOut("[SYSTEM]>>Cleanup finished at:" + get_current_time_string() + "\n");
+		ConsoleOut("[SYSTEM]>>Shutting down. Bye Bye!\n");
+
+		// Ensure log file is properly closed
+		CloseLog();
+		return 0;
 		}
 	}
-	play_exit_animation(renderer);
-	ConsoleOut("[SYSTEM]>>Exited Game Loop. Starting cleanup at:" + get_current_time_string() + "\n");
-	cleanuptime = SDL_GetTicks();
-	// Clean Up Resources
-	SDL_DestroyTexture(backround_texture);
-	SDL_DestroyTexture(player_resting_1_texture);
-	SDL_DestroyTexture(player_resting_2_texture);
-	SDL_DestroyTexture(player_walking_1_texture);
-	SDL_DestroyTexture(player_walking_2_texture);
-	SDL_DestroyTexture(chuuya_resting_texture);
-	SDL_DestroyTexture(chuuya_aggressiv_texture);
-	SDL_DestroyTexture(player_fighting_right_1_texture);
-	SDL_DestroyTexture(player_fighting_right_2_texture);
-	SDL_DestroyTexture(player_fighting_right_3_texture);
-	SDL_DestroyTexture(player_fighting_left_1_texture);
-	SDL_DestroyTexture(player_fighting_left_2_texture);
-	SDL_DestroyTexture(player_fighting_left_3_texture);
-	SDL_DestroyTexture(chuuya_fighting_right_1_texture);
-	SDL_DestroyTexture(chuuya_fighting_right_2_texture);
-	SDL_DestroyTexture(chuuya_fighting_right_3_texture);
-	SDL_DestroyTexture(chuuya_fighting_left_1_texture);
-	SDL_DestroyTexture(chuuya_fighting_left_2_texture);
-	SDL_DestroyTexture(chuuya_fighting_left_3_texture);
-
-	SDL_DestroyRenderer(renderer);
-	SDL_DestroyWindow(window);
-	SDL_Quit();
-	currenttime = SDL_GetTicks();
-
-	ConsoleOut("[SYSTEM]>>Cleanup finished at:" + get_current_time_string() + "\n");
-	ConsoleOut("[SYSTEM]>>Shutting down. Bye Bye!\n");
-
-	// Ensure log file is properly closed
-	CloseLog();
-	return 0;
 }
