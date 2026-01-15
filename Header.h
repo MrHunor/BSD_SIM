@@ -40,3 +40,4 @@ Default = 39
 extern void CoutColour(const string& text, uint8_t colour);
 extern void GS2RenderClear(SDL_Renderer* renderer, Character& gunHolder, Character& enemy);
 extern void moveCharacterRandomly(Character& c, Uint16 distance, SDL_Rect& bounds);
+void EnableANSIColors();

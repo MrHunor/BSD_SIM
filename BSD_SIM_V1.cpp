@@ -26,6 +26,7 @@ Changes Made [Date/Time/Summary of Changes Made]:
 |->28-12-2025/00:25/Small Performance upgrade, switched int to UintXX & fixed gamestatus bug
 |->01-01-2026/17:44/[UNSTABLE]Added Debug and Enemyto gamestatus 2 & did some optics on the code
 |->15-01-2026/20:38/Added Dynamic drawing in GS2, added GS3
+|->15-01-2026/20:47/Fixed some bugs for the first release versiom, added functioning ANSI output outside of debugger
 TODO:
 |->1Buxfixes needed: Give Abilitybar final tweaks;
 |->3Create config (that can be written to using the ingame console menu) for things like other exit animations etc.
@@ -57,6 +58,7 @@ bool ConsoleColour = true;//this has to be global so ConsoleOut can access it
 
 int main(int argc, char* argv[])
 {
+	EnableANSIColors();
 	//has to be defined before because the Debug? window uses it
 	string placeholder;
 	// Startup
@@ -190,7 +192,8 @@ int main(int argc, char* argv[])
 
 	// Main Game Loop
 	quit = false;
-	while (!quit) {
+	while (!quit)
+	{
 		currenttime = SDL_GetTicks();
 		switch (gamestatus) {
 		case 0:  // console
@@ -593,7 +596,7 @@ int main(int argc, char* argv[])
 			break;
 
 		case 2:
-		{
+
 			// Shooting game first person - Practice (not moving)
 			quit2 = false;
 			SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
@@ -739,12 +742,12 @@ int main(int argc, char* argv[])
 				{
 					SDL_Delay(1000 / fpsLimit);
 				}
+
+				break;
 			}
-			break;
-		}
 
 		case 3:
-		{
+
 			// Shooting game first person - Practice (moving)
 			quit2 = false;
 			SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
@@ -897,50 +900,50 @@ int main(int argc, char* argv[])
 				}
 			}
 			break;
-		}
+
 		default:
 		{
 			ConsoleOut("[GAME]>>Error: Unknown gamestatus value:" + to_string(gamestatus) + "\nShutting down...");
 			quit = true;
 			ConsoleOut("[GAME]>>Quitting due to Unknown Gamestatus Value\n");
 		}
-
-		if (Debug.state)ConsoleOut("[DEBUG]>>Playing Exit Animation");
-		play_exit_animation(renderer);
-		ConsoleOut("[SYSTEM]>>Exited Game Loop. Starting cleanup at:" + get_current_time_string() + "\n");
-		cleanuptime = SDL_GetTicks();
-		// Clean Up Resources
-		SDL_DestroyTexture(backround_texture);
-		SDL_DestroyTexture(player_resting_1_texture);
-		SDL_DestroyTexture(player_resting_2_texture);
-		SDL_DestroyTexture(player_walking_1_texture);
-		SDL_DestroyTexture(player_walking_2_texture);
-		SDL_DestroyTexture(chuuya_resting_texture);
-		SDL_DestroyTexture(chuuya_aggressiv_texture);
-		SDL_DestroyTexture(player_fighting_right_1_texture);
-		SDL_DestroyTexture(player_fighting_right_2_texture);
-		SDL_DestroyTexture(player_fighting_right_3_texture);
-		SDL_DestroyTexture(player_fighting_left_1_texture);
-		SDL_DestroyTexture(player_fighting_left_2_texture);
-		SDL_DestroyTexture(player_fighting_left_3_texture);
-		SDL_DestroyTexture(chuuya_fighting_right_1_texture);
-		SDL_DestroyTexture(chuuya_fighting_right_2_texture);
-		SDL_DestroyTexture(chuuya_fighting_right_3_texture);
-		SDL_DestroyTexture(chuuya_fighting_left_1_texture);
-		SDL_DestroyTexture(chuuya_fighting_left_2_texture);
-		SDL_DestroyTexture(chuuya_fighting_left_3_texture);
-
-		SDL_DestroyRenderer(renderer);
-		SDL_DestroyWindow(window);
-		SDL_Quit();
-		currenttime = SDL_GetTicks();
-
-		ConsoleOut("[SYSTEM]>>Cleanup finished at:" + get_current_time_string() + "\n");
-		ConsoleOut("[SYSTEM]>>Shutting down. Bye Bye!\n");
-
-		// Ensure log file is properly closed
-		CloseLog();
-		return 0;
 		}
 	}
+	if (Debug.state)ConsoleOut("[DEBUG]>>Playing Exit Animation");
+
+	play_exit_animation(renderer);
+	ConsoleOut("[SYSTEM]>>Exited Game Loop. Starting cleanup at:" + get_current_time_string() + "\n");
+	cleanuptime = SDL_GetTicks();
+	// Clean Up Resources
+	SDL_DestroyTexture(backround_texture);
+	SDL_DestroyTexture(player_resting_1_texture);
+	SDL_DestroyTexture(player_resting_2_texture);
+	SDL_DestroyTexture(player_walking_1_texture);
+	SDL_DestroyTexture(player_walking_2_texture);
+	SDL_DestroyTexture(chuuya_resting_texture);
+	SDL_DestroyTexture(chuuya_aggressiv_texture);
+	SDL_DestroyTexture(player_fighting_right_1_texture);
+	SDL_DestroyTexture(player_fighting_right_2_texture);
+	SDL_DestroyTexture(player_fighting_right_3_texture);
+	SDL_DestroyTexture(player_fighting_left_1_texture);
+	SDL_DestroyTexture(player_fighting_left_2_texture);
+	SDL_DestroyTexture(player_fighting_left_3_texture);
+	SDL_DestroyTexture(chuuya_fighting_right_1_texture);
+	SDL_DestroyTexture(chuuya_fighting_right_2_texture);
+	SDL_DestroyTexture(chuuya_fighting_right_3_texture);
+	SDL_DestroyTexture(chuuya_fighting_left_1_texture);
+	SDL_DestroyTexture(chuuya_fighting_left_2_texture);
+	SDL_DestroyTexture(chuuya_fighting_left_3_texture);
+
+	SDL_DestroyRenderer(renderer);
+	SDL_DestroyWindow(window);
+	SDL_Quit();
+	currenttime = SDL_GetTicks();
+
+	ConsoleOut("[SYSTEM]>>Cleanup finished at:" + get_current_time_string() + "\n");
+	ConsoleOut("[SYSTEM]>>Shutting down. Bye Bye!\n");
+
+	// Ensure log file is properly closed
+	CloseLog();
+	return 0;
 }
