@@ -24,7 +24,8 @@ Changes Made [Date/Time/Summary of Changes Made]:
 |->26-12-2025/19:55/Added ColourCout Function and tconsolecolour
 |->27-12-2025/13:52/Added Debug Class
 |->28-12-2025/00:25/Small Performance upgrade, switched int to UintXX & fixed gamestatus bug
-|->01-12-2025/17:44/[UNSTABLE]Added Debug and Enemyto gamestatus 2 & did some optics on the code
+|->01-01-2026/17:44/[UNSTABLE]Added Debug and Enemyto gamestatus 2 & did some optics on the code
+|->15-01-2026/20:38/Added Dynamic drawing in GS2, added GS3
 TODO:
 |->1Buxfixes needed: Give Abilitybar final tweaks;
 |->3Create config (that can be written to using the ingame console menu) for things like other exit animations etc.
@@ -32,15 +33,10 @@ TODO:
 |->5HEALTH BAR IMPORTANT
 |->6Create a GAME!->dazai walking aroung, shooting first person at enemys etc..
 |->7Add exit crash animaton
-|->8resize to 1024x1024 (PoT)
-|->9ADD PROPER LOGGING AND DEBUG OUPUT FOR GODS SAKE
 |->12Create Startups sceen with starup progress
-|->Add a enemy to the shooting game
 |->maybe rethink debug Class, one the one hand cleaner and nicer to  read on the other side double declaration and useless RAM usage
 |->expand the Character class to textures as well
-|->think of a dynamic draw over way for gamestatus 2 so that u dont always have to draw over the hole screen when moving
-|-> optimise character variables
-|->Optimise enemy gamestatus 2 if needs to
+|->add hardness levels to gamestatus 3 refering to the speed at which the enemy moves
 ******************************************************************************************/
 
 #include <SDL.h>
@@ -88,6 +84,7 @@ int main(int argc, char* argv[])
 	bool hit_took = false;
 	bool quit2 = false;
 	bool console = false;
+	bool placeholderBool = true;
 	Uint8 gamestatus = 0;
 	Uint16 fpsCounter = 0;
 	Uint16 lastFpsCount = 0;
@@ -99,6 +96,8 @@ int main(int argc, char* argv[])
 	Uint32 shootingcooldown = SDL_GetTicks();
 	Uint32 fpsCounterTimer = SDL_GetTicks();
 	Uint32 fpsLimitTimer = SDL_GetTicks();
+	Uint32 redrawWaitTimer = SDL_GetTicks();
+	Uint32 movingTimer = SDL_GetTicks();
 	//Have to be int because some SDL function only takes these as int
 	int textureW = 0;
 	int textureH = 0;
@@ -175,6 +174,8 @@ int main(int argc, char* argv[])
 	SDL_QueryTexture(dialogue_window, NULL, NULL, &textureW, &textureH);
 	SDL_Rect dialogue_window_rect = { 250, 820, textureW, textureH };
 	SDL_QueryTexture(enemy_texture, NULL, NULL, &textureW, &textureH);
+	SDL_Rect enemyBounds = { 0,0,500,500 };
+
 	//x,y will be defined as soon as gamemode 2 is called
 	enemy.rect = { NULL,NULL,textureW,textureH };
 	SDL_Point chuuyaRestingCenter = { chuuya.rect.w / 2, chuuya.rect.h / 2 };
@@ -593,26 +594,37 @@ int main(int argc, char* argv[])
 
 		case 2:
 		{
-			// Shooting game first person - Practice
+			// Shooting game first person - Practice (not moving)
 			quit2 = false;
 			SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
-			SDL_RenderClear(renderer);
+			SDL_RenderClear(renderer);//this requires a real RenderClear because the background must be set once
 			while (!quit2)
 			{
 				currenttime = SDL_GetTicks();
 				if (currenttime - fpsLimitTimer > (1000 / fpsLimit)) {
 					fpsLimitTimer = currenttime;
-					currenttime = SDL_GetTicks();
-					if (enemy.health <= 0)
+
+					if (enemy.health <= 0)//draw new enemy
 					{
-						enemy.rect.x = random(0, 500);
-						enemy.rect.y = random(0, 500);
-						enemy.health = 100;
+						if (enemy.health != -1)
+						{
+							GS2RenderClear(renderer, gunHolder, enemy);
+							redrawWaitTimer = currenttime;
+							enemy.health = -1;
+						}
+						if (currenttime - redrawWaitTimer > 5000)
+						{
+							redrawWaitTimer = currenttime;
+
+							enemy.rect.x = random(0, 500);
+							enemy.rect.y = random(0, 500);
+							enemy.health = 100;
+						}
 					}
 
 					//Drawing
+					if (enemy.health > 0)SDL_RenderCopy(renderer, enemy_texture, 0, &enemy.rect);
 					SDL_RenderCopy(renderer, shooting1P_1_texture, 0, &gunHolder.rect);
-					SDL_RenderCopy(renderer, enemy_texture, 0, &enemy.rect);
 					SDL_SetRenderDrawColor(renderer, 255, 0, 0, 0);
 					DrawFilledCircle(renderer, gunHolder.rect.x - 100, gunHolder.rect.y - 100, 5);
 					SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
@@ -635,20 +647,28 @@ int main(int argc, char* argv[])
 								ConsoleOut("[GAME]>>Quitting due to User Escaping via ESC from Gamestatus 2\n");
 								break;
 							case SDLK_w:
-								if (gunHolder.rect.y > 300) gunHolder.rect.y -= 100;
-								SDL_RenderClear(renderer);
+								if (gunHolder.rect.y > 300) {
+									GS2RenderClear(renderer, gunHolder, enemy);
+									gunHolder.rect.y -= 100;
+								}
 								break;
 							case SDLK_s:
-								if (gunHolder.rect.y < 676) gunHolder.rect.y += 100;
-								SDL_RenderClear(renderer);
+								if (gunHolder.rect.y < 676) {
+									GS2RenderClear(renderer, gunHolder, enemy);
+									gunHolder.rect.y += 100;
+								}
 								break;
 							case SDLK_a:
-								if (gunHolder.rect.x > 300) gunHolder.rect.x -= 100;
-								SDL_RenderClear(renderer);
+								if (gunHolder.rect.x > 300) {
+									GS2RenderClear(renderer, gunHolder, enemy);
+									gunHolder.rect.x -= 100;
+								}
 								break;
 							case SDLK_d:
-								if (gunHolder.rect.x < 620) gunHolder.rect.x += 100;
-								SDL_RenderClear(renderer);
+								if (gunHolder.rect.x < 620) {
+									GS2RenderClear(renderer, gunHolder, enemy);
+									gunHolder.rect.x += 100;
+								}
 								break;
 							case SDLK_e:  // shoot
 								//shot animation
@@ -657,7 +677,7 @@ int main(int argc, char* argv[])
 									SDL_RenderCopy(renderer, shooting1P_2_texture, 0, &gunHolder.rect);
 									SDL_RenderPresent(renderer);
 									SDL_Delay(100);
-									SDL_RenderClear(renderer);
+									GS2RenderClear(renderer, gunHolder, enemy);
 									shootingcooldown = currenttime;
 								}
 								//check if crossair is above enemy
@@ -709,6 +729,163 @@ int main(int argc, char* argv[])
 						ConsoleOut("[DEBUG]>>Enemy Cords:" + to_string(Debug.enemyCords[0]) + "," + to_string(Debug.enemyCords[1]) + "\n");
 						ConsoleOut("[DEBUG]>>GunHolder Health:" + to_string(gunHolder.health) + "\n");
 						ConsoleOut("[DEBUG]>>Enemy Health:" + to_string(enemy.health) + "\n");
+						ConsoleOut("[DEBUG]>>RedrawWaitTimer:" + to_string(redrawWaitTimer) + "\n");
+						ConsoleOut("[DEBUG]>>This message will be displayed again in " + to_string(Debug.interval) + "ms\n\n");
+
+						Debug_time = currenttime;
+					}
+				}
+				else
+				{
+					SDL_Delay(1000 / fpsLimit);
+				}
+			}
+			break;
+		}
+
+		case 3:
+		{
+			// Shooting game first person - Practice (moving)
+			quit2 = false;
+			SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
+			SDL_RenderClear(renderer);//this requires a real RenderClear because the background must be set once
+			while (!quit2)
+			{
+				currenttime = SDL_GetTicks();
+				if (currenttime - fpsLimitTimer > (1000 / fpsLimit)) {
+					fpsLimitTimer = currenttime;
+
+					if (enemy.health <= 0)//draw new enemy
+					{
+						if (enemy.health != -1)
+						{
+							GS2RenderClear(renderer, gunHolder, enemy);
+							redrawWaitTimer = currenttime;
+							enemy.health = -1;
+						}
+						if (currenttime - redrawWaitTimer > 5000)
+						{
+							redrawWaitTimer = currenttime;
+
+							enemy.rect.x = random(0, 500);
+							enemy.rect.y = random(0, 500);
+							enemy.health = 100;
+						}
+					}
+					if (currenttime - movingTimer > 300)
+					{
+						movingTimer = currenttime;
+						GS2RenderClear(renderer, gunHolder, enemy);
+						moveCharacterRandomly(enemy, 100, enemyBounds);
+					}
+					//Drawing
+					if (enemy.health > 0)SDL_RenderCopy(renderer, enemy_texture, 0, &enemy.rect);
+					SDL_RenderCopy(renderer, shooting1P_1_texture, 0, &gunHolder.rect);
+					SDL_SetRenderDrawColor(renderer, 255, 0, 0, 0);
+					DrawFilledCircle(renderer, gunHolder.rect.x - 100, gunHolder.rect.y - 100, 5);
+					SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
+					SDL_RenderPresent(renderer);
+					while (SDL_PollEvent(&event)) {
+						if (event.type == SDL_QUIT) {
+							quit = true;
+							ConsoleOut("[GAME]>>Quitting due to User Escaping via SDL_QUIT from Gamestatus 2\n");
+							quit2 = true;
+						}
+
+						else if (event.type == SDL_KEYDOWN) {
+							switch (event.key.keysym.sym) {
+							case SDLK_c:
+								gamestatus = 0;
+								quit2 = true;
+								break;
+							case SDLK_ESCAPE:
+								quit = true;
+								ConsoleOut("[GAME]>>Quitting due to User Escaping via ESC from Gamestatus 2\n");
+								break;
+							case SDLK_w:
+								if (gunHolder.rect.y > 300) {
+									GS2RenderClear(renderer, gunHolder, enemy);
+									gunHolder.rect.y -= 100;
+								}
+								break;
+							case SDLK_s:
+								if (gunHolder.rect.y < 676) {
+									GS2RenderClear(renderer, gunHolder, enemy);
+									gunHolder.rect.y += 100;
+								}
+								break;
+							case SDLK_a:
+								if (gunHolder.rect.x > 300) {
+									GS2RenderClear(renderer, gunHolder, enemy);
+									gunHolder.rect.x -= 100;
+								}
+								break;
+							case SDLK_d:
+								if (gunHolder.rect.x < 620) {
+									GS2RenderClear(renderer, gunHolder, enemy);
+									gunHolder.rect.x += 100;
+								}
+								break;
+							case SDLK_e:  // shoot
+								//shot animation
+								if (currenttime - shootingcooldown > 200) {
+									SDL_RenderClear(renderer);
+									SDL_RenderCopy(renderer, shooting1P_2_texture, 0, &gunHolder.rect);
+									SDL_RenderPresent(renderer);
+									SDL_Delay(100);
+									GS2RenderClear(renderer, gunHolder, enemy);
+									shootingcooldown = currenttime;
+								}
+								//check if crossair is above enemy
+								//check x
+								if (gunHolder.rect.x - 100 >= enemy.rect.x && gunHolder.rect.x - 100 <= enemy.rect.x + enemy.rect.w)
+								{
+									//check y
+									if (gunHolder.rect.y - 100 >= enemy.rect.y && gunHolder.rect.y - 100 <= enemy.rect.y + enemy.rect.h)
+									{
+										enemy.health -= 20;
+									}
+								}
+								break;
+							}
+						}
+					}
+
+					//Debug Prep
+					if (currenttime - fpsCounterTimer > 1000) {
+						lastFpsCount = fpsCounter;
+						fpsCounter = 0;
+						fpsCounterTimer = currenttime;
+					}
+					//Debug Calculation
+					if (Debug.state)
+					{
+						Debug.gametime = SDL_GetTicks();
+						Debug.fps = lastFpsCount;
+						Debug.ramUsage = GetMemoryUsage();
+						Debug.CPULoad = GetCPULoad();
+						Debug.gunHolderCords[0] = gunHolder.rect.x;
+						Debug.gunHolderCords[1] = gunHolder.rect.y;
+						Debug.crossairCords[0] = gunHolder.rect.x - 100;
+						Debug.crossairCords[1] = gunHolder.rect.y - 100;
+						Debug.enemyCords[0] = enemy.rect.x;
+						Debug.enemyCords[1] = enemy.rect.y;
+						Debug.gunHolderHealth = gunHolder.health;
+						Debug.enemyHealth = enemy.health;
+					}
+
+					// Debug output
+					if (Debug.state && currenttime - Debug_time > Debug.interval) {
+						ConsoleOut("[DEBUG]>>Gametime:" + to_string(Debug.gametime) + "\n");
+						ConsoleOut("[DEBUG]>>FPS:" + to_string(Debug.fps) + "\n");
+						ConsoleOut("[DEBUG]>>Current CPU Usage:" + to_string(Debug.CPULoad) + "%\n");
+						ConsoleOut("[DEBUG]>>RAM Usage:" + to_string(Debug.ramUsage) + " MB" + "\n");
+						ConsoleOut("[DEBUG]>>GunHolder Cords:" + to_string(Debug.gunHolderCords[0]) + "," + to_string(Debug.gunHolderCords[1]) + "\n");
+						ConsoleOut("[DEBUG]>>Crossair Cords:" + to_string(Debug.crossairCords[0]) + "," + to_string(Debug.crossairCords[1]) + "\n");
+						ConsoleOut("[DEBUG]>>Enemy Cords:" + to_string(Debug.enemyCords[0]) + "," + to_string(Debug.enemyCords[1]) + "\n");
+						ConsoleOut("[DEBUG]>>GunHolder Health:" + to_string(gunHolder.health) + "\n");
+						ConsoleOut("[DEBUG]>>Enemy Health:" + to_string(enemy.health) + "\n");
+						ConsoleOut("[DEBUG]>>RedrawWaitTimer:" + to_string(redrawWaitTimer) + "\n");
 						ConsoleOut("[DEBUG]>>This message will be displayed again in " + to_string(Debug.interval) + "ms\n\n");
 
 						Debug_time = currenttime;

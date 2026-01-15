@@ -16,6 +16,7 @@
 #include <string>
 #include <mutex>
 #include "Header.h"
+#include "class_def.h"
 #pragma comment(lib, "pdh.lib")
 using namespace std;
 namespace fs = std::filesystem;
@@ -24,6 +25,36 @@ namespace fs = std::filesystem;
 static std::ofstream g_logFile;
 static std::mutex g_logMutex;
 
+void  moveCharacterRandomly(Character& c, Uint16 distance, SDL_Rect& bounds)
+{
+	Uint8 val;
+
+	val = random(0, 3);
+	switch (val)
+	{
+	case 0:
+		if (c.rect.x - distance > bounds.x)c.rect.x -= distance;
+		break;
+	case 1:
+		if (c.rect.x + distance < bounds.x + bounds.w)c.rect.x += distance;
+		break;
+	case 2:
+		if (c.rect.y - distance > bounds.y)c.rect.y -= distance;
+		break;
+	case 3:
+		if (c.rect.y + distance < bounds.y + bounds.h)c.rect.y += distance;
+		break;
+	}
+}
+
+//Due to the background being pitch black you can just draw black over the objects resulting in less screen flickering as it has to draw fewer pixels
+void GS2RenderClear(SDL_Renderer* renderer, Character& gunHolder, Character& enemy)
+{
+	SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
+	SDL_RenderFillRect(renderer, &gunHolder.rect);
+	DrawFilledCircle(renderer, gunHolder.rect.x - 100, gunHolder.rect.y - 100, 5);
+	SDL_RenderFillRect(renderer, &enemy.rect);
+}
 void CoutColour(const string& text, uint8_t colour)
 {
 	string output = "\033[";
