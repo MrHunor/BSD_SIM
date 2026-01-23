@@ -455,14 +455,29 @@ void play_exit_animation(SDL_Renderer* renderer) {
 	SDL_Delay(1000);
 }
 //thank god for chatgpt
-void EnableANSIColors()
+UINT8 EnableANSIColors()
 {
-	HANDLE hOut = GetConsoleWindow();
-	if (hOut == INVALID_HANDLE_VALUE) return;
+	// 1. Get the handle to Standard Output (not the window itself)
+	HANDLE hOut = GetStdHandle(STD_OUTPUT_HANDLE);
+	if (hOut == INVALID_HANDLE_VALUE) return 1;
 
+	// 2. Get the current mode
 	DWORD dwMode = 0;
-	if (!GetConsoleMode(hOut, &dwMode)) return;
+	if (!GetConsoleMode(hOut, &dwMode)) return 1;
 
+	// 3. Enable the specific flag for ANSI escape sequences
 	dwMode |= ENABLE_VIRTUAL_TERMINAL_PROCESSING;
-	SetConsoleMode(hOut, dwMode);
+	if (!SetConsoleMode(hOut, dwMode)) return 1;
+}
+
+void RenderInfoBarG2(SDL_Renderer* renderer)
+{
+	SDL_Rect rect;
+	rect.x = 0;
+	rect.y = 0;
+	rect.w = 1024;
+	rect.h = 100;
+	SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
+	SDL_RenderFillRect(renderer, &rect);
+	SDL_RenderPresent(renderer);
 }

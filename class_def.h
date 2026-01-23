@@ -14,6 +14,7 @@ public:
 	bool fighting;
 	bool aggressiv;
 	bool walking;
+	Uint8 level;
 	Uint32 LastFrameSwitchResting;
 	Uint32 LastFrameSwitchWalking;
 	Uint32 LastFrameSwitchFighting;
@@ -26,6 +27,7 @@ class DebugClass
 public:
 	/*Time for printing the message in ms*/
 	Uint16 interval;
+	bool Variant; //0 = normal; 1 = cls
 	/*Debug console out true or false*/
 	bool state;
 	Uint32 gametime;

@@ -27,6 +27,7 @@ Changes Made [Date/Time/Summary of Changes Made]:
 |->01-01-2026/17:44/[UNSTABLE]Added Debug and Enemyto gamestatus 2 & did some optics on the code
 |->15-01-2026/20:38/Added Dynamic drawing in GS2, added GS3
 |->15-01-2026/20:47/Fixed some bugs for the first release versiom, added functioning ANSI output outside of debugger
+|->23-01-2026/23:17/Added Debug Variant and improved ANSI support, added Heart Texture
 TODO:
 |->1Buxfixes needed: Give Abilitybar final tweaks;
 |->3Create config (that can be written to using the ingame console menu) for things like other exit animations etc.
@@ -38,6 +39,8 @@ TODO:
 |->maybe rethink debug Class, one the one hand cleaner and nicer to  read on the other side double declaration and useless RAM usage
 |->expand the Character class to textures as well
 |->add hardness levels to gamestatus 3 refering to the speed at which the enemy moves
+|->ANSI COLOUR OUTPUT OUTSIDE OF COMPILER DEARLY NEEDS FIXING
+|->Add bar in shooting game (level, health, etc)
 ******************************************************************************************/
 
 #include <SDL.h>
@@ -54,12 +57,12 @@ TODO:
 using namespace std;
 std::once_flag flag;
 
-bool ConsoleColour = true;//this has to be global so ConsoleOut can access it
+bool ConsoleColour = false;//this has to be global so ConsoleOut can access it
 
 int main(int argc, char* argv[])
 {
-	EnableANSIColors();
-	//has to be defined before because the Debug? window uses it
+	if (EnableANSIColors() == 1) ConsoleOut("[DEBUG]>>Failed to init ANSI Colors.");
+	//has to be defined before because the Debug window uses it
 	string placeholder;
 	// Startup
 	HWND consoleWindow = GetConsoleWindow();
@@ -119,6 +122,7 @@ int main(int argc, char* argv[])
 	chuuya.LastFrameSwitchFighting = SDL_GetTicks();
 	chuuya.fightingCooldown = SDL_GetTicks();
 	dazai.LastFrameSwitchFighting = SDL_GetTicks();
+	Debug.Variant = 0;
 
 	//will be set as soon as gamemode is 2
 	enemy.health = 0;
@@ -157,15 +161,20 @@ int main(int argc, char* argv[])
 	SDL_Texture* shooting1P_2_texture = IMG_LoadTexture(renderer, "assets\\Shooting1P_2.png");
 	SDL_Texture* dialogue_window = IMG_LoadTexture(renderer, "assets\\dialogue_window.png");
 	SDL_Texture* enemy_texture = IMG_LoadTexture(renderer, "assets\\Enemy.png");
+	SDL_Texture* heart_texture = IMG_LoadTexture(renderer, "assets\\heart.png");
 	// Check if textures created successfully
-	if (!backround_texture || !player_resting_1_texture || !player_resting_2_texture || !player_walking_1_texture || !player_walking_2_texture || !chuuya_resting_texture || !chuuya_aggressiv_texture || !player_fighting_right_1_texture || !player_fighting_right_2_texture || !player_fighting_right_3_texture || !player_fighting_left_1_texture || !player_fighting_left_2_texture || !player_fighting_left_3_texture || !chuuya_fighting_right_1_texture || !chuuya_fighting_right_2_texture || !chuuya_fighting_right_3_texture || !chuuya_fighting_left_1_texture || !chuuya_fighting_left_2_texture || !chuuya_fighting_left_3_texture || !shooting1P_1_texture || !shooting1P_2_texture || !enemy_texture) {
+	if (!backround_texture || !player_resting_1_texture || !player_resting_2_texture || !player_walking_1_texture || !player_walking_2_texture || !chuuya_resting_texture || !chuuya_aggressiv_texture || !player_fighting_right_1_texture || !player_fighting_right_2_texture || !player_fighting_right_3_texture || !player_fighting_left_1_texture || !player_fighting_left_2_texture || !player_fighting_left_3_texture || !chuuya_fighting_right_1_texture || !chuuya_fighting_right_2_texture || !chuuya_fighting_right_3_texture || !chuuya_fighting_left_1_texture || !chuuya_fighting_left_2_texture || !chuuya_fighting_left_3_texture || !shooting1P_1_texture || !shooting1P_2_texture || !enemy_texture || !heart_texture) {
 		ConsoleOut("[SYSTEM]>>Texture Creation Error: " + string(SDL_GetError()));
 		return 1;
 	}
 
 	// Defining rects
+	SDL_Rect backround_rect;
+	SDL_Rect dialogue_window_rect;
+	SDL_Rect enemyBounds_rect;
+	SDL_Rect heart_rect;
 	SDL_QueryTexture(backround_texture, NULL, NULL, &textureW, &textureH);
-	SDL_Rect backround_rect = { 0, 0, textureW, textureH };
+	backround_rect = { 0, 0, textureW, textureH };
 	SDL_QueryTexture(player_resting_1_texture, NULL, NULL, &textureW, &textureH);
 	dazai.rect = { 100, 100, textureW, textureH };
 	SDL_QueryTexture(chuuya_resting_texture, NULL, NULL, &textureW, &textureH);
@@ -174,12 +183,14 @@ int main(int argc, char* argv[])
 	// no need for a rect for the 2 frame because the dimesions are the same for both frames
 	gunHolder.rect = { 620, 676, textureW, textureH };
 	SDL_QueryTexture(dialogue_window, NULL, NULL, &textureW, &textureH);
-	SDL_Rect dialogue_window_rect = { 250, 820, textureW, textureH };
+	dialogue_window_rect = { 250, 820, textureW, textureH };
 	SDL_QueryTexture(enemy_texture, NULL, NULL, &textureW, &textureH);
-	SDL_Rect enemyBounds = { 0,0,500,500 };
+	//x,y will be defined as soon as gamemode 2 is called, 200 are placeholder values for the intial drawing of the bar
+	enemy.rect = { 200,200,textureW,textureH };
+	SDL_QueryTexture(heart_texture, NULL, NULL, &textureW, &textureH);
+	heart_rect = { 20,10,textureW,textureH };
+	enemyBounds_rect = { 0,0,500,500 };
 
-	//x,y will be defined as soon as gamemode 2 is called
-	enemy.rect = { NULL,NULL,textureW,textureH };
 	SDL_Point chuuyaRestingCenter = { chuuya.rect.w / 2, chuuya.rect.h / 2 };
 	SDL_Point playerRestingCenter = { dazai.rect.w / 2, dazai.rect.h / 2 };
 
@@ -188,7 +199,7 @@ int main(int argc, char* argv[])
 	ConsoleOut("[SYSTEM]>>Startup finished after:" + to_string(currenttime - general_time) + "ms  at:" + get_current_time_string() + "\n");
 	if (!Debug.state) Intro(renderer);
 	ConsoleOut("[SYSTEM]>>Program loop started\n");
-	gamestatus = 1;  // for testing purposes
+	gamestatus = 2;  // for testing purposes
 
 	// Main Game Loop
 	quit = false;
@@ -196,8 +207,9 @@ int main(int argc, char* argv[])
 	{
 		currenttime = SDL_GetTicks();
 		switch (gamestatus) {
-		case 0:  // console
-
+			/*console*/
+		case 0:
+		{
 			quit2 = false;
 			SetForegroundWindow(consoleWindow);
 			ConsoleOut("[CONSOLE]>>");
@@ -224,7 +236,8 @@ int main(int argc, char* argv[])
 					ConsoleOut("[CONSOLE]>>dialogue: test the dialogue function\n");
 					ConsoleOut("[CONSOLE]>>tconsolecolour: toggle ConsoleColour\n");
 					ConsoleOut("[CONSOLE]>>tdebug: toggle Debug\n");
-					ConsoleOut("[CONSOLE]>>debugintervall: Set Debug interval in ms (the time at which the message is printed to the console), max. value = 65535\n");
+					ConsoleOut("[CONSOLE]>>DebugIntervall: Set Debug interval in ms (the time at which the message is printed to the console), max. value = 65535\n");
+					ConsoleOut("[CONSOLE]>>tDebugVariant: toggle between 0. printing every message after another 1. running cls between each debug output, max. value 1\n");
 					ConsoleOut("[CONSOLE]>>");
 				}
 				else if (command == "fps") {
@@ -276,14 +289,26 @@ int main(int argc, char* argv[])
 					ConsoleOut("[CONSOLE]>>Debug is now:" + to_string(Debug.state) + "\n");
 					ConsoleOut("[CONSOLE]>>");
 				}
-				else if (command == "debugintervall")
+				else if (command == "DebugIntervall")
 				{
-					ConsoleOut("[CONSOLE]>>Current debug intervall:" + to_string(Debug.interval) + "Enter new Debug interval:");
+					ConsoleOut("[CONSOLE]>>Current debug intervall:" + to_string(Debug.interval) + "\nEnter new Debug interval:");
 					cin >> placeholder;
-					if (std::all_of(placeholder.begin(), placeholder.end(), ::isdigit) && stoi(placeholder) <= 65535)
+					if (std::all_of(placeholder.begin(), placeholder.end(), ::isdigit) && stoi(placeholder) <= 65535 && stoi(placeholder) >= 0)
 					{
 						Debug.interval = stoi(placeholder);
 						ConsoleOut("\n[CONSOLE]>>Debug Intervall is now:" + to_string(Debug.interval) + "\n");
+					}
+					else ConsoleOut("[CONSOLE]>>Input Invalid. Check help for more information");
+					ConsoleOut("[CONSOLE]>>");
+				}
+				else if (command == "tDebugVariant")
+				{
+					ConsoleOut("[CONSOLE]>>Current Debug Variant:" + to_string(Debug.Variant) + "\nEnter new Debug Variant:");
+					cin >> placeholder;
+					if (std::all_of(placeholder.begin(), placeholder.end(), ::isdigit) && stoi(placeholder) <= 1 && stoi(placeholder) >= 0)
+					{
+						Debug.Variant = stoi(placeholder);
+						ConsoleOut("\n[CONSOLE]>>Debug Variant is now:" + to_string(Debug.Variant) + "\n");
 					}
 					else ConsoleOut("[CONSOLE]>>Input Invalid. Check help for more information");
 					ConsoleOut("[CONSOLE]>>");
@@ -294,7 +319,10 @@ int main(int argc, char* argv[])
 				}
 			}
 			break;
+		}
+		/*2D walk around (naming???)*/
 		case 1:
+		{
 			if (currenttime - fpsLimitTimer > (1000 / fpsLimit)) {
 				fpsLimitTimer = currenttime;
 				dazai.walking = false;
@@ -568,6 +596,7 @@ int main(int argc, char* argv[])
 
 				// Debug output
 				if (Debug.state && currenttime - Debug_time > Debug.interval) {
+					if (Debug.Variant == 1)system("cls");
 					ConsoleOut("[DEBUG]>>Gametime:" + to_string(Debug.gametime) + "\n");
 					ConsoleOut("[DEBUG]>>FPS:" + to_string(Debug.fps) + "\n");
 					ConsoleOut("[DEBUG]>>Current CPU Usage:" + to_string(Debug.CPULoad) + "%\n");
@@ -594,13 +623,14 @@ int main(int argc, char* argv[])
 				SDL_Delay(1000 / fpsLimit);
 			}
 			break;
-
+		}
+		/*Shooting game first person - Practice (not moving)*/
 		case 2:
-
-			// Shooting game first person - Practice (not moving)
+		{
 			quit2 = false;
 			SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
 			SDL_RenderClear(renderer);//this requires a real RenderClear because the background must be set once
+			RenderInfoBarG2(renderer);
 			while (!quit2)
 			{
 				currenttime = SDL_GetTicks();
@@ -620,7 +650,7 @@ int main(int argc, char* argv[])
 							redrawWaitTimer = currenttime;
 
 							enemy.rect.x = random(0, 500);
-							enemy.rect.y = random(0, 500);
+							enemy.rect.y = random(100, 500);
 							enemy.health = 100;
 						}
 					}
@@ -723,6 +753,7 @@ int main(int argc, char* argv[])
 
 					// Debug output
 					if (Debug.state && currenttime - Debug_time > Debug.interval) {
+						if (Debug.Variant == 1)system("cls");
 						ConsoleOut("[DEBUG]>>Gametime:" + to_string(Debug.gametime) + "\n");
 						ConsoleOut("[DEBUG]>>FPS:" + to_string(Debug.fps) + "\n");
 						ConsoleOut("[DEBUG]>>Current CPU Usage:" + to_string(Debug.CPULoad) + "%\n");
@@ -742,16 +773,16 @@ int main(int argc, char* argv[])
 				{
 					SDL_Delay(1000 / fpsLimit);
 				}
-
-				break;
 			}
-
+			break;
+		}
+		/*Shooting game first person - Practice (moving)*/
 		case 3:
-
-			// Shooting game first person - Practice (moving)
+		{
 			quit2 = false;
 			SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
 			SDL_RenderClear(renderer);//this requires a real RenderClear because the background must be set once
+			RenderInfoBarG2(renderer);
 			while (!quit2)
 			{
 				currenttime = SDL_GetTicks();
@@ -779,7 +810,7 @@ int main(int argc, char* argv[])
 					{
 						movingTimer = currenttime;
 						GS2RenderClear(renderer, gunHolder, enemy);
-						moveCharacterRandomly(enemy, 100, enemyBounds);
+						moveCharacterRandomly(enemy, 100, enemyBounds_rect);
 					}
 					//Drawing
 					if (enemy.health > 0)SDL_RenderCopy(renderer, enemy_texture, 0, &enemy.rect);
@@ -879,6 +910,7 @@ int main(int argc, char* argv[])
 
 					// Debug output
 					if (Debug.state && currenttime - Debug_time > Debug.interval) {
+						if (Debug.Variant == 1)system("cls");
 						ConsoleOut("[DEBUG]>>Gametime:" + to_string(Debug.gametime) + "\n");
 						ConsoleOut("[DEBUG]>>FPS:" + to_string(Debug.fps) + "\n");
 						ConsoleOut("[DEBUG]>>Current CPU Usage:" + to_string(Debug.CPULoad) + "%\n");
@@ -906,6 +938,7 @@ int main(int argc, char* argv[])
 			ConsoleOut("[GAME]>>Error: Unknown gamestatus value:" + to_string(gamestatus) + "\nShutting down...");
 			quit = true;
 			ConsoleOut("[GAME]>>Quitting due to Unknown Gamestatus Value\n");
+		}
 		}
 		}
 	}
